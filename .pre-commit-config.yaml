@@ -1,0 +1,39 @@
+default_language_version:
+  python: python 3.11
+default_stages: [pre-commit, pre-push]
+exclude: |
+  (?x)(
+    ^.*\/migrations\/.*\.py$
+  )
+repos:
+-  repo: https://github.com/pre-commit/pre-commit-hooks
+   rev: v4.5.0
+   hooks:
+   -  id: check-yaml
+   -  id: requirements-txt-fixer
+   -  id: no-commit-to-branch
+      args: ['--branch', 'main']
+
+-  repo: https://github.com/pre-commit/mirrors-autopep8
+   rev: 'v2.0.4'
+   hooks:
+   -  id: autopep8
+
+-  repo: https://github.com/PyCQA/flake8
+   rev: 7.0.0
+   hooks:
+   -  id: flake8
+      additional_dependencies: [flake8-docstrings]
+      args: ['--docstring-convention=google']
+
+-  repo: https://github.com/pycqa/isort
+   rev: 5.13.2
+   hooks:
+   -  id: isort
+      args: ["--profile", "black", "--filter-files"]
+
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.1.13
+  hooks:
+    - id: ruff
+    - id: ruff-format

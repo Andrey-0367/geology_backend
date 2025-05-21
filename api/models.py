@@ -1,0 +1,126 @@
+from django.db import models
+from django.conf import settings
+
+
+class ContactMessage(models.Model):
+    email = models.EmailField(max_length=255)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Message from {self.email}"
+
+
+class Employee(models.Model):
+    full_name = models.CharField("Полное имя", max_length=255)
+    photo = models.ImageField("Фото", upload_to='employees/', blank=True, null=True)
+    positions = models.ManyToManyField('Position', verbose_name="Должности")
+    bio = models.TextField("Биография", blank=True)
+    profile_link = models.CharField("Ссылка на профиль", max_length=100, unique=True)
+    is_active = models.BooleanField("Активный", default=True)
+    order = models.PositiveIntegerField("Порядок", default=0)
+
+    class Meta:
+        ordering = ['order']
+
+
+class Position(models.Model):
+    name = models.CharField("Название", max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
+class Category(models.Model):
+    name = models.CharField("Название категории", max_length=255)
+    image = models.ImageField("Изображение категории", upload_to='categories/', blank=True, null=True)
+    slug = models.SlugField("URL-адрес", max_length=255, unique=True)
+    created_at = models.DateTimeField("Дата создания", auto_now_add=True)
+    updated_at = models.DateTimeField("Дата обновления", auto_now=True)
+    is_active = models.BooleanField("Активная", default=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = "Категория"
+        verbose_name_plural = "Категории"
+
+    def __str__(self):
+        return self.name
+
+
+class Product(models.Model):
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        related_name='products',
+        verbose_name="Категория"
+    )
+    name = models.CharField("Название товара", max_length=255)
+    price = models.DecimalField("Цена", max_digits=10, decimal_places=2)
+    image = models.ImageField("Изображение товара", upload_to='products/')
+    description = models.TextField("Описание товара", blank=True)
+    slug = models.SlugField("URL-адрес", max_length=255, unique=True)
+    created_at = models.DateTimeField("Дата создания", auto_now_add=True)
+    updated_at = models.DateTimeField("Дата обновления", auto_now=True)
+    is_active = models.BooleanField("Активный", default=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Товар"
+        verbose_name_plural = "Товары"
+
+    def __str__(self):
+        return self.name
+
+
+class Order(models.Model):
+    STATUS_CHOICES = [
+        ('new', 'Новый'),
+        ('processing', 'В обработке'),
+        ('completed', 'Завершен'),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='new'
+    )
+    total = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0
+    )
+    phone = models.CharField(max_length=20)
+    email = models.EmailField()
+    comment = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Order #{self.id}"
+
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(
+        Order,
+        related_name='items',
+        on_delete=models.CASCADE
+    )
+    product = models.ForeignKey(
+        'Product',
+        on_delete=models.PROTECT
+    )
+    quantity = models.PositiveIntegerField(default=1)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.product.name} x{self.quantity}"
