@@ -36,7 +36,11 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
+<<<<<<< HEAD
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+=======
+ALLOWED_HOSTS = ['geologiya-ru.ru', 'localhost']
+>>>>>>> dev
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 CORS_ALLOWED_ORIGINS = [
@@ -143,7 +147,11 @@ USE_TZ = True
 STATIC_URL = 'static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+<<<<<<< HEAD
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+=======
+STATIC_ROOT = '/var/www/u3143616/data/www/geologiya-ru.ru/static'
+>>>>>>> dev
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

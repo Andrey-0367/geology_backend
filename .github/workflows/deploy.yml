@@ -34,6 +34,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+<<<<<<< HEAD
       - name: Deploy via SSH
         uses: appleboy/ssh-action@master
         with:
@@ -46,3 +47,17 @@ jobs:
             docker-compose -f docker-compose.prod.yml down
             docker-compose -f docker-compose.prod.yml up -d --build
             docker system prune -af --volumes
+=======
+    - name: Deploy to server
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          cd /var/www/u3143616/data/www/geologiya-ru.ru
+          git pull origin dev
+          sudo docker-compose -f docker-compose.dev.yml down
+          sudo docker-compose -f docker-compose.dev.yml up -d --build
+          sudo docker system prune -af
+>>>>>>> dev
