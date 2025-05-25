@@ -1,23 +1,24 @@
-name: Deploy
+name: Deploy Django App
 
 on:
   push:
-    branches: [dev]
+    branches: [ dev ]
 
 jobs:
+
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Configure Git
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git remote set-url origin git@github.com:Andrey-0367/geology_backend.git
-
-      - name: Push changes
-        run: git push origin dev
+    - name: Deploy to server
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          cd /var/www/geology_app/geology_backend
+          git pull origin dev
+          sudo docker-compose -f docker-compose.dev.yml down
+          sudo docker-compose -f docker-compose.dev.yml up -d --build
+          sudo docker system prune -af
