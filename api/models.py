@@ -19,6 +19,7 @@ class Employee(models.Model):
     profile_link = models.CharField("Ссылка на профиль", max_length=100, unique=True)
     is_active = models.BooleanField("Активный", default=True)
     order = models.PositiveIntegerField("Порядок", default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['order']
@@ -26,6 +27,7 @@ class Employee(models.Model):
 
 class Position(models.Model):
     name = models.CharField("Название", max_length=100)
+    order = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name

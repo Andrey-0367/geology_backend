@@ -1,0 +1,7 @@
+{
+  "build": {
+    "env": {
+      "DATABASE_URL": "postgresql://postgres:VEnfLXOQNWwQOYYdisZwFlRLnTeRGYTK@postgres.railway.internal:5432/railway"
+    }
+  }
+}

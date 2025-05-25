@@ -145,3 +145,4 @@ media/
 media_data/
 data/
 help_file.py
+echo "prod-ca-2021.crt"

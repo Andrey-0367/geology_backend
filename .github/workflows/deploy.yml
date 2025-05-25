@@ -1,24 +1,48 @@
-name: Deploy Django App
+#name: Deploy Django App
+#
+#on:
+#  push:
+#    branches: [ dev ]
+#
+#jobs:
+#
+#  deploy:
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#    - name: Deploy to server
+#      uses: appleboy/ssh-action@master
+#      with:
+#        host: ${{ secrets.SERVER_HOST }}
+#        username: ${{ secrets.SERVER_USER }}
+#        key: ${{ secrets.SSH_PRIVATE_KEY }}
+#        script: |
+#          cd /var/www/geology_app/geology_backend
+#          git pull origin dev
+#          sudo docker-compose -f docker-compose.dev.yml down
+#          sudo docker-compose -f docker-compose.dev.yml up -d --build
+#          sudo docker system prune -af
+
+
+name: Deploy Backend
 
 on:
   push:
-    branches: [ dev ]
+    branches: [dev]  # Запускать при пуше в ветку dev
 
 jobs:
-
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Deploy to server
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.SERVER_HOST }}
-        username: ${{ secrets.SERVER_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          cd /var/www/geology_app/geology_backend
-          git pull origin dev
-          sudo docker-compose -f docker-compose.dev.yml down
-          sudo docker-compose -f docker-compose.dev.yml up -d --build
-          sudo docker system prune -af
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/geology_app/geology_backend
+            git pull origin dev
+            docker-compose -f docker-compose.prod.yml down
+            docker-compose -f docker-compose.prod.yml up -d --build
+            docker system prune -af --volumes
