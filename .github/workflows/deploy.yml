@@ -1,3 +1,14 @@
+name: Deploy
+
+# Добавьте секцию "on" с указанием событий
+on:
+  push:
+    branches:
+      - dev  # Workflow запустится при пуше в ветку dev
+  pull_request:
+    branches:
+      - dev  # Или при создании pull request в ветку dev
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -10,14 +21,9 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" | base64 -d | tr -d '\r' > ~/.ssh/id_ed25519
+          echo "$SSH_PRIVATE_KEY" | base64 -d > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan github.com >> ~/.ssh/known_hosts
-          
-          # Игнорируем код возврата, если аутентификация успешна
-          ssh -T git@github.com 2>&1 | grep "successfully authenticated" && exit 0 || exit 1
 
-      - name: Deploy
-        run: |
-          git push origin dev
-            
+      - name: Push changes
+        run: git push origin dev
