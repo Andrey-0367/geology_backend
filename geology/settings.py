@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-t#%1o_#!1*2b+3&phkx5yp1((26zo(av6v9#0%4jbgb4fi9j*!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['geologiya-ru.ru', 'localhost']
 
 
 # Application definition
@@ -132,6 +132,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+STATIC_ROOT = '/var/www/u3143616/data/www/geologiya-ru.ru/static'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
