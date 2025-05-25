@@ -45,7 +45,7 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 22
+          port: 22  # Указываем порт 22
           script: |
             cd /var/www/u3143616/data/www/geologiya-ru.ru
             git pull origin dev
