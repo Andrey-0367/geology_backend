@@ -10,6 +10,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Debug SSH Key
+        run: |
+          echo "Decoded key:"
+          echo "$SSH_PRIVATE_KEY" | base64 -d | cat -vet
+          echo "Key saved to file:"
+          cat ~/.ssh/id_ed25519 | cat -vet
       - name: Deploy via SSH
         uses: appleboy/ssh-action@master
         with:
