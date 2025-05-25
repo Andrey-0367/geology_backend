@@ -10,6 +10,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Setup SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          # Декодируем ключ и сохраняем
+          echo "$SSH_PRIVATE_KEY" | base64 -d > ~/.ssh/id_ed25519
+          # Удаляем Windows-символы (если есть)
+          sed -i 's/\r$//' ~/.ssh/id_ed25519
+          # Проверяем права
+          chmod 700 ~/.ssh
+          chmod 600 ~/.ssh/id_ed25519
+          # Добавляем GitHub в known_hosts
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          # Проверяем, что файл создан
+          ls -la ~/.ssh
+          # Тест подключения
+          ssh -T git@github.com
       - name: Debug SSH Key
         run: |
           echo "Decoded key:"
