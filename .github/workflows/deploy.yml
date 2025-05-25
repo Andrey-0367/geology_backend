@@ -1,49 +1,23 @@
-name: Deploy Django App
-
-on:
-  push:
-    branches: [ dev ]
-
 jobs:
-
   deploy:
     runs-on: ubuntu-latest
-
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Setup SSH
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh
-          # Декодируем ключ и сохраняем
-          echo "$SSH_PRIVATE_KEY" | base64 -d > ~/.ssh/id_ed25519
-          # Удаляем Windows-символы (если есть)
-          sed -i 's/\r$//' ~/.ssh/id_ed25519
-          # Проверяем права
-          chmod 700 ~/.ssh
+          echo "$SSH_PRIVATE_KEY" | base64 -d | tr -d '\r' > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          # Добавляем GitHub в known_hosts
           ssh-keyscan github.com >> ~/.ssh/known_hosts
-          # Проверяем, что файл создан
-          ls -la ~/.ssh
-          # Тест подключения
-          ssh -T git@github.com
-      - name: Debug SSH Key
+          
+          # Игнорируем код возврата, если аутентификация успешна
+          ssh -T git@github.com 2>&1 | grep "successfully authenticated" && exit 0 || exit 1
+
+      - name: Deploy
         run: |
-          echo "Decoded key:"
-          echo "$SSH_PRIVATE_KEY" | base64 -d | cat -vet
-          echo "Key saved to file:"
-          cat ~/.ssh/id_ed25519 | cat -vet
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd /var/www/geology_app/geology_backend
-            git pull origin dev
-            docker-compose -f docker-compose.prod.yml down
-            docker-compose -f docker-compose.prod.yml up -d --build
-            docker system prune -af --volumes
+          git push origin dev
             
