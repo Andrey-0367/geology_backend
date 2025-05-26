@@ -39,6 +39,6 @@ jobs:
         script: |
           cd /var/www/u3143616/data/www/geologiya-ru.ru
           git pull origin dev
-          sudo docker-compose -f docker-compose.dev.yml down
-          sudo docker-compose -f docker-compose.dev.yml up -d --build
-          sudo docker system prune -af
+          docker-compose -f docker-compose.dev.yml down
+          docker-compose -f docker-compose.dev.yml up -d --build
+          docker system prune -af
