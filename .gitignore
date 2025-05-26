@@ -1,9 +1,32 @@
 frontend/node_modules
 infra/frontend/build
 .env
+# Virtual environment
+myenv/
+venv/
 
-# Byte-compiled / optimized / DLL files
+# Django
+*.log
+*.pot
+*.pyc
 __pycache__/
+db.sqlite3
+media/
+staticfiles/
+
+# Environments
+
+.venv/
+.env/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+# Byte-compiled / optimized / DLL files
+
 *.py[cod]
 *$py.class
 
@@ -57,12 +80,12 @@ coverage.xml
 
 # Translations
 *.mo
-*.pot
+
 
 # Django stuff:
-*.log
+
 local_settings.py
-db.sqlite3
+
 db.sqlite3-journal
 *.sql
 
@@ -107,12 +130,11 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+
 .venv
-.venv/
-.env/
+
 env/
-venv/
+
 ENV/
 env.bak/
 venv.bak/
@@ -141,7 +163,7 @@ dmypy.json
 # .isort.cfg
 
 static/
-media/
+
 media_data/
 data/
 help_file.py

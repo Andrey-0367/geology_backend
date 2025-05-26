@@ -1,5 +1,5 @@
 default_language_version:
-  python: python 3.11
+  python: python 3.9
 default_stages: [pre-commit, pre-push]
 exclude: |
   (?x)(
