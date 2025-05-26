@@ -16,4 +16,6 @@ jobs:
         port: 2222
         script: |
           cd /var/www/u3143616/data/www/geologiya-ru.ru
-          git pull origin dev
+          git fetch --all
+          git reset --hard origin/dev
+          git clean -fd
