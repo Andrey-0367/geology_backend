@@ -1,21 +1,20 @@
-name: Deploy
+name: Deploy Backend
+
 on:
   push:
-    branches: [dev]
+    branches: [main]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - name: Deploy to Reg.ru
-      uses: appleboy/ssh-action@master
-      with:
-        host: 31.31.197.37
-        username: u3143616
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        port: 22
-        script: |
-          cd /var/www/u3143616/data/www/geologiya-ru.ru
-          git fetch --all
-          git reset --hard origin/dev
-          git clean -fd
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: server290.hosting.reg.ru
+          username: u3143616
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /var/www/u3143616/data/www/geologiya-ru.ru/geology_backend
+            docker-compose down
+            docker-compose up -d --build
