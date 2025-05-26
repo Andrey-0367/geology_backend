@@ -13,7 +13,7 @@ jobs:
         host: 31.31.197.37
         username: u3143616
         key: ${{ secrets.SSH_PRIVATE_KEY }}
-        port: 2222
+        port: 22
         script: |
           cd /var/www/u3143616/data/www/geologiya-ru.ru
           git fetch --all
