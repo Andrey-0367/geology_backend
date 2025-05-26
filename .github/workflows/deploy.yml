@@ -1,5 +1,4 @@
 name: Deploy
-
 on:
   push:
     branches: [dev]
@@ -8,43 +7,13 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - name: SSH Deployment
+    - name: Deploy to Reg.ru
       uses: appleboy/ssh-action@master
       with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USERNAME }}
+        host: 31.31.197.37
+        username: u3143616
         key: ${{ secrets.SSH_PRIVATE_KEY }}
-        port: 22
+        port: 2222
         script: |
-          echo "=== Начало деплоя ==="
-          
-          # Остановить сервисы
-          sudo systemctl stop gunicorn || true
-          
-          # Основные пути
-          ROOT_DIR="/var/www/u3143616/data/www/geologiya-ru.ru"
-          PROJECT_DIR="$ROOT_DIR/geology_backend"
-          
-          # Обновление кода
-          if [ -d "$PROJECT_DIR" ]; then
-            cd "$PROJECT_DIR"
-            git fetch --all
-            git reset --hard origin/dev
-            git clean -fd
-          else
-            git clone git@github.com:Andrey-0367/geology_backend.git -b dev "$PROJECT_DIR"
-          fi
-          
-          # Установка зависимостей
-          cd "$PROJECT_DIR"
-          python -m venv myenv
-          source myenv/bin/activate
-          pip install -r requirements.txt
-          
-          # Настройка окружения
-          echo "SECRET_KEY='your-secret-key'" > .env
-          echo "DEBUG=False" >> .env
-          echo "ALLOWED_HOSTS=geologiya-ru.ru" >> .env
-          
-          # Запуск сервисов
-          sudo systemctl start gunicorn
+          cd /var/www/u3143616/data/www/geologiya-ru.ru
+          git pull origin dev
