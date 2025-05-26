@@ -1,44 +1,19 @@
-#name: Deploy
-#on:
-#  push:
-#    branches: [dev]
-#
-#jobs:
-#  deploy:
-#    runs-on: ubuntu-latest
-#    steps:
-#    - name: Deploy to Reg.ru
-#      uses: appleboy/ssh-action@master
-#      with:
-#        host: 31.31.197.37
-#        username: u3143616
-#        key: ${{ secrets.SSH_PRIVATE_KEY }}
-#        port: 2222
-#        script: |
-#          cd /var/www/u3143616/data/www/geologiya-ru.ru
-#          git pull origin dev
-
-name: Deploy Django App
-
+name: Deploy
 on:
   push:
-    branches: [ dev ]
+    branches: [dev]
 
 jobs:
-
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Deploy to server
+    - name: Deploy to Reg.ru
       uses: appleboy/ssh-action@master
       with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USERNAME }}
+        host: 31.31.197.37
+        username: u3143616
         key: ${{ secrets.SSH_PRIVATE_KEY }}
+        port: 2222
         script: |
           cd /var/www/u3143616/data/www/geologiya-ru.ru
           git pull origin dev
-          docker-compose -f docker-compose.dev.yml down
-          docker-compose -f docker-compose.dev.yml up -d --build
-          docker system prune -af
