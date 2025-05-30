@@ -1,1 +1,1 @@
-# Geology_backend.
+# Geology_backend

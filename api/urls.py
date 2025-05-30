@@ -1,15 +1,19 @@
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from rest_framework import routers
 from .views import ContactMessageViewSet, EmployeeViewSet, CategoryViewSet, ProductViewSet, OrderViewSet
 
-router = DefaultRouter()
-router.register(r'contact', ContactMessageViewSet, basename='contact-messages')
-router.register(r'employees', EmployeeViewSet, basename='employees')
-router.register(r'categories', CategoryViewSet)
-router.register(r'products', ProductViewSet)
-router.register(r'orders', OrderViewSet, basename='order')
+
+api_urls: list = []
+v1_router_api = routers.DefaultRouter()
+
+v1_router_api.register(r'contact', ContactMessageViewSet, basename='contact-messages')
+v1_router_api.register(r'employees', EmployeeViewSet, basename='employees')
+v1_router_api.register(r'categories', CategoryViewSet)
+v1_router_api.register(r'products', ProductViewSet)
+v1_router_api.register(r'orders', OrderViewSet, basename='order')
+
+api_urls.extend(v1_router_api.urls)
 
 urlpatterns = [
-    path('', include(router.urls)),
-    path('shop/', include(router.urls)),
+    path('v1/', include(api_urls)),
 ]
