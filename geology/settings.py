@@ -68,16 +68,44 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
 ]
 
-CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_ALL_ORIGINS = (
+    os.environ.get('CORS_ALLOW_ALL_ORIGINS', 'True') == 'True'
+)
+CORS_ALLOW_CREDENTIALS = (
+    os.environ.get('CORS_ALLOW_CREDENTIALS', 'True') == 'True'
+)
+CORS_ALLOW_METHODS = [
+    'GET',
+    'PATCH',
+    'POST',
+    'PUT',
+    'DELETE',
+    'OPTIONS',
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'accept-language',
+    'authorization',
+    'content-type',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 ROOT_URLCONF = 'geology.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates'),
+            BASE_DIR / 'templates',
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -96,15 +124,26 @@ WSGI_APPLICATION = 'geology.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.getenv('PGDATABASE'),
+#         'USER': os.getenv('PGUSER'),
+#         'PASSWORD': os.getenv('PGPASSWORD'),
+#         'HOST': os.getenv('RAILWAY_PRIVATE_DOMAIN'),
+#         'PORT': os.getenv('RAILWAY_TCP_PROXY_PORT'),
+#         'OPTIONS': {'sslmode': 'require'}
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('PGDATABASE'),
-        'USER': os.getenv('PGUSER'),
-        'PASSWORD': os.getenv('PGPASSWORD'),
-        'HOST': os.getenv('RAILWAY_PRIVATE_DOMAIN'),
-        'PORT': os.getenv('RAILWAY_TCP_PROXY_PORT'),
-        'OPTIONS': {'sslmode': 'require'}
+        'NAME': os.environ.get('POSTGRES_DB'),
+        'USER': os.environ.get('POSTGRES_USER'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 # Password validation
@@ -142,16 +181,20 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+STATIC_ROOT = BASE_DIR / 'static'
 
-STATIC_ROOT = '/var/www/u3143616/data/www/geologiya-ru.ru/static'
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+AUTH_USER_MODEL = 'users.RassvetUser'
+
+LOGIN_URL = '/admin/login/'
 
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -160,3 +203,145 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Geology API',
+    'VERSION': '1.0.0',
+}
+
+CKEDITOR_5_CONFIGS = {
+    'default': {
+        'toolbar': [
+            'heading',
+            '|',
+            'fontfamily',
+            'fontsize',
+            'fontColor',
+            'fontBackgroundColor',
+            '|',
+            'bold',
+            'italic',
+            'underline',
+            'strikethrough',
+            'code',
+            '|',
+            'alignment',
+            '|',
+            'bulletedList',
+            'numberedList',
+            '|',
+            'outdent',
+            'indent',
+            '|',
+            'link',
+            'blockQuote',
+            'insertTable',
+            '|',
+            'horizontalLine',
+            'pageBreak',
+            '|',
+            'findAndReplace',
+            '|',
+            'undo',
+            'redo',
+            '|',
+            'highlight',
+            'removeFormat',
+            '|',
+            'specialCharacters',
+            'subscript',
+            'superscript',
+            '|',
+            'todoList',
+        ],
+        'image': {
+            'toolbar': [
+                'imageTextAlternative',
+                'imageStyle:inline',
+                'imageStyle:block',
+                'imageStyle:side',
+                'linkImage',
+            ]
+        },
+        'table': {
+            'contentToolbar': [
+                'tableColumn',
+                'tableRow',
+                'mergeTableCells',
+                'tableCellProperties',
+                'tableProperties',
+            ]
+        },
+        'heading': {
+            'options': [
+                {
+                    'model': 'paragraph',
+                    'title': 'Paragraph',
+                    'class': 'ck-heading_paragraph',
+                },
+                {
+                    'model': 'heading1',
+                    'view': 'h1',
+                    'title': 'Heading 1',
+                    'class': 'ck-heading_heading1',
+                },
+                {
+                    'model': 'heading2',
+                    'view': 'h2',
+                    'title': 'Heading 2',
+                    'class': 'ck-heading_heading2',
+                },
+                {
+                    'model': 'heading3',
+                    'view': 'h3',
+                    'title': 'Heading 3',
+                    'class': 'ck-heading_heading3',
+                },
+                {
+                    'model': 'heading4',
+                    'view': 'h4',
+                    'title': 'Heading 4',
+                    'class': 'ck-heading_heading4',
+                },
+                {
+                    'model': 'heading5',
+                    'view': 'h5',
+                    'title': 'Heading 5',
+                    'class': 'ck-heading_heading5',
+                },
+                {
+                    'model': 'heading6',
+                    'view': 'h6',
+                    'title': 'Heading 6',
+                    'class': 'ck-heading_heading6',
+                },
+            ]
+        },
+        'height': '500px',
+        'width': '100%',
+        'fontSize': {
+            'options': [9, 11, 13, 'default', 17, 19, 21, 27, 35],
+            'supportAllValues': True,
+        },
+        'language': 'ru',
+        'link': {
+            'decorators': {
+                'openInNewTab': {
+                    'mode': 'manual',
+                    'label': 'Открыть в новой вкладке',
+                    'defaultValue': True,
+                }
+            }
+        },
+    },
+}
+CKEDITOR_5_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+CKEDITOR_5_UPLOAD_PATH = 'uploads/ckeditor5/'
