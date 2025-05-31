@@ -13,6 +13,17 @@ DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
+CORS_ALLOWED_ORIGINS = [
+    "https://www.geologiya-ru.ru",
+    "http://www.geologiya-ru.ru",
+]
+
+# Дополнительные настройки для безопасности
+CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = [
+    "https://www.geologiya-ru.ru",
+]
+
 # Application definition
 
 INSTALLED_APPS = [
