@@ -11,10 +11,11 @@ services:
   backend:
     image: docker.io/pochek/geology_backend:latest
     env_file: .env.production
-    command: gunicorn geology.wsgi:application --bind 0.0.0.0:8000 --workers 3
+    command: >
+      sh -c "python manage.py collectstatic --noinput &&
+             gunicorn geology.wsgi:application --bind 0.0.0.0:8000 --workers 3"
     volumes:
-      - static_volume:/app/collected_static
-      - media_volume:/app/media
+      - static_volume:/app/collected_static  # Тот же путь что и в nginx
     depends_on:
       - db
     restart: unless-stopped
@@ -24,10 +25,9 @@ services:
     ports:
       - "80:80"
     volumes:
-      - static_volume:/usr/share/nginx/html/static
+      - static_volume:/app/collected_static  # Исправлено на тот же путь
     depends_on:
       - backend
 volumes:
   pg_data:
   static_volume:
-  media_volume:
