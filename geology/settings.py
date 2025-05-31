@@ -11,8 +11,11 @@ SECRET_KEY = os.getenv('SECRET_KEY', default='the-best-secret-key')
 
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
-
+# ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
+ALLOWED_HOSTS = ['83.166.245.78', 'localhost', '127.0.0.1']
+CSRF_TRUSTED_ORIGINS = ['http://83.166.245.78', 'https://83.166.245.78']
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 CORS_ALLOWED_ORIGINS = [
     "https://www.geologiya-ru.ru",
     "http://www.geologiya-ru.ru",
@@ -20,9 +23,9 @@ CORS_ALLOWED_ORIGINS = [
 
 # Дополнительные настройки для безопасности
 CORS_ALLOW_CREDENTIALS = True
-CSRF_TRUSTED_ORIGINS = [
-    "https://www.geologiya-ru.ru",
-]
+# CSRF_TRUSTED_ORIGINS = [
+#     "https://www.geologiya-ru.ru",
+# ]
 
 # Application definition
 
