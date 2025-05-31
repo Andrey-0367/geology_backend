@@ -78,6 +78,15 @@ jobs:
           sudo docker compose ps
           sudo docker compose logs --tail=20
           
+          sudo docker compose -f docker-compose.yml pull
+          sudo docker compose -f docker-compose.yml down
+          sudo docker compose -f docker-compose.yml up -d
+          sudo docker compose -f docker-compose.yml exec -T backend python manage.py migrate --noinput
+          sudo docker compose -f docker-compose.yml exec -T backend python manage.py collectstatic --noinput
+      
+          # Проверка
+          sudo docker compose -f docker-compose.yml ps
+          
           # Проверим доступность админки
           echo "Проверка админки:"
           curl -I http://localhost/admin/ || true
