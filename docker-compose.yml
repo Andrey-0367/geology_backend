@@ -9,7 +9,7 @@ services:
     restart: unless-stopped
 
   backend:
-    image: pochek/geology_backend:latest
+    image: docker.io/pochek/geology_backend:latest
     env_file: .env.production
     command: gunicorn geology.wsgi:application --bind 0.0.0.0:8000 --workers 3
     volumes:
@@ -20,17 +20,13 @@ services:
     restart: unless-stopped
 
   nginx:
-    image: pochek/geology_nginx:latest
-    volumes:
-      - static_volume:/staticfiles
-      - media_volume:/media
+    image: docker.io/pochek/geology_nginx:latest
     ports:
       - "80:80"
-      - "443:443"
+    volumes:
+      - static_volume:/usr/share/nginx/html/static
     depends_on:
       - backend
-    restart: unless-stopped
-
 volumes:
   pg_data:
   static_volume:
