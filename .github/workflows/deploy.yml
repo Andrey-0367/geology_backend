@@ -14,6 +14,15 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    # Добавьте шаг для проверки секретов
+    - name: Debug secrets
+      run: |
+        echo "DOCKERHUB_USERNAME length: ${#DOCKERHUB_USERNAME}"
+        echo "DOCKERHUB_TOKEN length: ${#DOCKERHUB_TOKEN}"
+      env:
+        DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
     - name: Setup Docker Buildx
       uses: docker/setup-buildx-action@v2
 
@@ -23,23 +32,27 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+    # Явно укажите реестр в теге
     - name: Build and push backend image
       uses: docker/build-push-action@v3
       with:
         context: .
         file: Dockerfile
         push: true
-        tags: ${{ secrets.DOCKERHUB_USERNAME }}/geology_backend:latest
+        tags: |
+          docker.io/${{ secrets.DOCKERHUB_USERNAME }}/geology_backend:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
+    # Для nginx тоже добавьте явный реестр
     - name: Build and push nginx image
       uses: docker/build-push-action@v3
       with:
         context: nginx
         file: nginx/Dockerfile
         push: true
-        tags: ${{ secrets.DOCKERHUB_USERNAME }}/geology_nginx:latest
+        tags: |
+          docker.io/${{ secrets.DOCKERHUB_USERNAME }}/geology_nginx:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
