@@ -40,8 +40,7 @@ jobs:
         context: .
         file: Dockerfile
         push: true
-        tags: |
-          docker.io/pochek/geology_backend:latest
+        tags: pochek/geology_backend:latest
         cache: false  # Отключите кэш для диагностики
 
     - name: Build and push nginx image
@@ -50,8 +49,7 @@ jobs:
         context: nginx
         file: nginx/Dockerfile
         push: true
-        tags: |
-          docker.io/pochek/geology_nginx:latest
+        tags: pochek/geology_nginx:latest
         cache: false  # Отключите кэш для диагностики
 
     - name: Deploy to server
