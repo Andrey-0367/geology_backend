@@ -23,8 +23,8 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 CORS_ALLOW_CREDENTIALS = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_DOMAIN = ".geologiya-ru.ru"
-CSRF_COOKIE_DOMAIN = ".geologiya-ru.ru"
+# SESSION_COOKIE_DOMAIN = ".geologiya-ru.ru"
+# CSRF_COOKIE_DOMAIN = ".geologiya-ru.ru"
 
 # Application definition
 INSTALLED_APPS = [
