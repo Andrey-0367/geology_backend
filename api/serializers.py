@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ContactMessage, Position, Employee, Category, Product, OrderItem, Order
+from .models import ContactMessage, Employee, Category, Product, OrderItem, Order
 
 
 class ContactMessageSerializer(serializers.ModelSerializer):
@@ -10,7 +10,6 @@ class ContactMessageSerializer(serializers.ModelSerializer):
 
 class EmployeeSerializer(serializers.ModelSerializer):
     photo_url = serializers.SerializerMethodField()
-    positions = serializers.StringRelatedField(many=True)
 
     class Meta:
         model = Employee

@@ -14,14 +14,9 @@ class ContactMessage(models.Model):
 class Employee(models.Model):
     full_name = models.CharField("Полное имя", max_length=255)
     photo = models.ImageField("Фото", upload_to='employees/', blank=True, null=True)
-    positions = models.ManyToManyField('Position', verbose_name="Должности")
+    positions = models.TextField("Должности", blank=True)
     bio = models.TextField("Биография", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-
-
-class Position(models.Model):
-    name = models.CharField("Название", max_length=100)
-    order = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name
