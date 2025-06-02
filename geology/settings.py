@@ -11,16 +11,36 @@ SECRET_KEY = os.getenv('SECRET_KEY', default='the-best-secret-key')
 
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
+
 # ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
-ALLOWED_HOSTS = ['83.166.245.78', 'localhost', '127.0.0.1']
-CSRF_TRUSTED_ORIGINS = ['http://83.166.245.78', 'https://83.166.245.78']
+ALLOWED_HOSTS = [
+    '83.166.245.78',
+    '192.168.0.140',
+    'localhost',
+    '127.0.0.1'
+]
+CSRF_TRUSTED_ORIGINS = [
+    'http://83.166.245.78',
+    'https://83.166.245.78',
+    'http://192.168.0.140',
+    'https://192.168.0.140',
+]
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
+CORS_ALLOWED_ORIGINS = [
+     'https://83.166.245.78',
+     'http://83.166.245.78',
+     'http://192.168.0.140',
+     'https://192.168.0.140',
+     'http://localhost:3000',
+]
 
 # Дополнительные настройки для безопасности
 CORS_ALLOW_CREDENTIALS = True
-
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_DOMAIN = None
+CSRF_COOKIE_DOMAIN = None
 
 # Application definition
 
@@ -128,10 +148,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ORIGIN_WHITELIST = [
-    'http://localhost:3000'
-]
-
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -140,3 +156,10 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
+
+if DEBUG:
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+else:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
