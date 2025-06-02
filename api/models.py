@@ -18,9 +18,6 @@ class Employee(models.Model):
     bio = models.TextField("Биография", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        ordering = ['order']
-
 
 class Position(models.Model):
     name = models.CharField("Название", max_length=100)

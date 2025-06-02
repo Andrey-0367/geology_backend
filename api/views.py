@@ -36,7 +36,7 @@ class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
     ViewSet для получения информации о сотрудниках
     Только операции чтения (GET)
     """
-    queryset = Employee.objects.filter(is_active=True)
+    queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
 
     def get_serializer_context(self):

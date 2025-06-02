@@ -13,9 +13,7 @@ class PositionAdmin(admin.ModelAdmin):
 class EmployeeAdmin(admin.ModelAdmin):
     list_display = ('full_name', 'created_at')
     search_fields = ('full_name', 'bio')
-    list_filter = ('is_active', 'positions')
     filter_horizontal = ('positions',)
-    list_editable = ('is_active',)
 
 
 @admin.register(Category)
