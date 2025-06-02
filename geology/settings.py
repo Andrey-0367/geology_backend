@@ -12,30 +12,12 @@ SECRET_KEY = os.getenv('SECRET_KEY', default='the-best-secret-key')
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 
-# ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
-# CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', '').split(',')
-# CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
-ALLOWED_HOSTS = [
-    '83.166.245.78',
-    '192.168.0.140',
-    'localhost',
-    '127.0.0.1'
-]
-CSRF_TRUSTED_ORIGINS = [
-    'http://83.166.245.78',
-    'https://83.166.245.78',
-    'http://192.168.0.140',
-    'https://192.168.0.140',
-]
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
+CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', '').split(',')
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-CORS_ALLOWED_ORIGINS = [
-     'https://83.166.245.78',
-     'http://83.166.245.78',
-     'http://192.168.0.140',
-     'https://192.168.0.140',
-     'http://localhost:3000',
-]
 
 # Дополнительные настройки для безопасности
 CORS_ALLOW_CREDENTIALS = True
@@ -45,7 +27,6 @@ SESSION_COOKIE_DOMAIN = ".geologiya-ru.ru"
 CSRF_COOKIE_DOMAIN = ".geologiya-ru.ru"
 
 # Application definition
-
 INSTALLED_APPS = [
     'api.apps.ApiConfig',
     'django.contrib.admin',
