@@ -16,9 +16,6 @@ class Employee(models.Model):
     photo = models.ImageField("Фото", upload_to='employees/', blank=True, null=True)
     positions = models.ManyToManyField('Position', verbose_name="Должности")
     bio = models.TextField("Биография", blank=True)
-    profile_link = models.CharField("Ссылка на профиль", max_length=100, unique=True)
-    is_active = models.BooleanField("Активный", default=True)
-    order = models.PositiveIntegerField("Порядок", default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
