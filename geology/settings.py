@@ -13,6 +13,8 @@ DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 
 # ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
+# CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', '').split(',')
+# CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
 ALLOWED_HOSTS = [
     '83.166.245.78',
     '192.168.0.140',
@@ -39,8 +41,8 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_DOMAIN = None
-CSRF_COOKIE_DOMAIN = None
+SESSION_COOKIE_DOMAIN = ".geologiya-ru.ru"
+CSRF_COOKIE_DOMAIN = ".geologiya-ru.ru"
 
 # Application definition
 
