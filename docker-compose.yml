@@ -6,52 +6,35 @@ services:
     env_file: .env.production
     volumes:
       - pg_data:/var/lib/postgresql/data
-    networks:
-      - geology-network
+    restart: unless-stopped
 
   backend:
-    image: ${{ secrets.DOCKERHUB_USERNAME }}/geology_backend:latest
+    image: docker.io/pochek/geology_backend:latest
     env_file: .env.production
-    command: gunicorn geology.wsgi:application --bind 0.0.0.0:8000 --workers 3
+    command: >
+      sh -c "python manage.py collectstatic --noinput &&
+             gunicorn geology.wsgi:application --bind 0.0.0.0:8000 --workers 3"
     volumes:
       - static_volume:/app/collected_static
       - media_volume:/app/media
     depends_on:
       - db
-    networks:
-      - geology-network
+    restart: unless-stopped
 
   nginx:
-    image: ${{ secrets.DOCKERHUB_USERNAME }}/geology_nginx:latest
-    volumes:
-      - static_volume:/staticfiles
-      - media_volume:/media
-      - certbot_www:/var/www/certbot
-      - certbot_conf:/etc/letsencrypt
+    image: docker.io/pochek/geology_nginx:latest
     ports:
       - "80:80"
-      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - static_volume:/var/html/static
+      - media_volume:/var/html/media
     depends_on:
       - backend
-    networks:
-      - geology-network
-
-  certbot:
-    image: certbot/certbot
-    volumes:
-      - certbot_www:/var/www/certbot
-      - certbot_conf:/etc/letsencrypt
-    command: certonly --webroot -w /var/www/certbot --email admin@geologiya-ru.ru --agree-tos --no-eff-email -d api.geologiya-ru.ru --keep-until-expiring --non-interactive
-    networks:
-      - geology-network
-
+    restart: always
 volumes:
   pg_data:
   static_volume:
   media_volume:
-  certbot_www:
-  certbot_conf:
 
-networks:
-  geology-network:
-    driver: bridge
+

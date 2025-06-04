@@ -14,23 +14,12 @@ class ContactMessage(models.Model):
 class Employee(models.Model):
     full_name = models.CharField("Полное имя", max_length=255)
     photo = models.ImageField("Фото", upload_to='employees/', blank=True, null=True)
-    positions = models.ManyToManyField('Position', verbose_name="Должности")
+    positions = models.TextField("Должности", blank=True)
     bio = models.TextField("Биография", blank=True)
-    profile_link = models.CharField("Ссылка на профиль", max_length=100, unique=True)
-    is_active = models.BooleanField("Активный", default=True)
-    order = models.PositiveIntegerField("Порядок", default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        ordering = ['order']
-
-
-class Position(models.Model):
-    name = models.CharField("Название", max_length=100)
-    order = models.IntegerField(default=0)
-
     def __str__(self):
-        return self.name
+        return self.full_name
 
 
 class Category(models.Model):

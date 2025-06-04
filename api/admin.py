@@ -1,21 +1,11 @@
 from django.contrib import admin
-from .models import Position, Employee, Category, Product
-
-
-@admin.register(Position)
-class PositionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'order')
-    search_fields = ('name',)
-    list_editable = ('order',)
+from .models import Employee, Category, Product
 
 
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'is_active', 'order', 'created_at')
+    list_display = ('full_name', 'created_at')
     search_fields = ('full_name', 'bio')
-    list_filter = ('is_active', 'positions')
-    filter_horizontal = ('positions',)
-    list_editable = ('is_active', 'order')
 
 
 @admin.register(Category)
