@@ -1,30 +1,15 @@
 import os
 from pathlib import Path
 
-from django.template.context_processors import media
-from dotenv import load_dotenv
 
-load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv('SECRET_KEY', default='the-best-secret-key')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'default-key')
 
-DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '127.0.0.1').split(',')
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
-CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', '').split(',')
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
-
-USE_X_FORWARDED_HOST = True
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
-# Дополнительные настройки для безопасности
-CORS_ALLOW_CREDENTIALS = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-# SESSION_COOKIE_DOMAIN = ".geologiya-ru.ru"
-# CSRF_COOKIE_DOMAIN = ".geologiya-ru.ru"
 
 # Application definition
 INSTALLED_APPS = [
@@ -48,6 +33,32 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+CORS_ALLOW_ALL_ORIGINS = (
+    os.environ.get('CORS_ALLOW_ALL_ORIGINS', 'True') == 'True'
+)
+CORS_ALLOW_CREDENTIALS = (
+    os.environ.get('CORS_ALLOW_CREDENTIALS', 'True') == 'True'
+)
+CORS_ALLOW_METHODS = [
+    'GET',
+    'PATCH',
+    'POST',
+    'PUT',
+    'DELETE',
+    'OPTIONS',
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'accept-language',
+    'authorization',
+    'content-type',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]
 
 ROOT_URLCONF = 'geology.urls'
@@ -78,13 +89,14 @@ WSGI_APPLICATION = 'geology.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('POSTGRES_DB', 'django'),
-        'USER': os.getenv('POSTGRES_USER', 'django_user'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
-        'HOST': os.getenv('DB_HOST', 'db'),
-        'PORT': os.getenv('DB_PORT', 5432)
+        'NAME': os.environ.get('POSTGRES_DB', 'django'),
+        'USER': os.environ.get('POSTGRES_USER', 'django_user'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', 'db'),
+        'PORT': os.environ.get('DB_PORT', 5432)
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -140,9 +152,4 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
 
-if DEBUG:
-    SESSION_COOKIE_SECURE = False
-    CSRF_COOKIE_SECURE = False
-else:
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+
