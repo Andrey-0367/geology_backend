@@ -1,3 +1,42 @@
+#version: '3.8'
+#
+#services:
+#  db:
+#    image: postgres:13.10
+#    env_file: .env.production
+#    volumes:
+#      - pg_data:/var/lib/postgresql/data
+#    restart: unless-stopped
+#
+#  backend:
+#    image: docker.io/pochek/geology_backend:latest
+#    env_file: .env.production
+#    command: >
+#      sh -c "python manage.py collectstatic --noinput &&
+#             gunicorn geology.wsgi:application --bind 0.0.0.0:8000 --workers 3"
+#    volumes:
+#      - static_volume:/app/collected_static
+#      - media_volume:/app/media
+#    depends_on:
+#      - db
+#    restart: unless-stopped
+#
+#  nginx:
+#    image: docker.io/pochek/geology_nginx:latest
+#    ports:
+#      - "80:80"
+#    volumes:
+#      - ./nginx/conf.d:/etc/nginx/conf.d
+#      - static_volume:/var/html/static
+#      - media_volume:/var/html/media
+#    depends_on:
+#      - backend
+#    restart: always
+#volumes:
+#  pg_data:
+#  static_volume:
+#  media_volume:
+
 version: '3.8'
 
 services:
@@ -9,32 +48,30 @@ services:
     restart: unless-stopped
 
   backend:
-    image: docker.io/pochek/geology_backend:latest
+    build: .
     env_file: .env.production
     command: >
-      sh -c "python manage.py collectstatic --noinput &&
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py collectstatic --noinput &&
              gunicorn geology.wsgi:application --bind 0.0.0.0:8000 --workers 3"
     volumes:
-      - static_volume:/app/collected_static
-      - media_volume:/app/media
+      - static_volume:/app/staticfiles
     depends_on:
       - db
     restart: unless-stopped
 
   nginx:
-    image: docker.io/pochek/geology_nginx:latest
+    build: nginx
     ports:
       - "80:80"
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
       - static_volume:/var/html/static
-      - media_volume:/var/html/media
     depends_on:
       - backend
     restart: always
+
 volumes:
   pg_data:
   static_volume:
-  media_volume:
 
 
