@@ -32,19 +32,12 @@ class ContactMessageViewSet(
 
 
 class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    ViewSet для получения информации о сотрудниках
-    Только операции чтения (GET)
-    """
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
 
-    def get_serializer_context(self):
-        return {'request': self.request}
 
-
-class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Category.objects.filter(is_active=True)
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
 
