@@ -15,8 +15,8 @@ services:
       sh -c "python manage.py collectstatic --noinput &&
              gunicorn geology.wsgi:application --bind 0.0.0.0:8000 --workers 3"
     volumes:
-      - ./geology:/app/geology
       - static_volume:/app/collected_static
+      - media_volume:/app/media
     depends_on:
       - db
     restart: unless-stopped
@@ -27,8 +27,8 @@ services:
       - "80:80"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
-      - static_volume:/app/collected_static
-      - media_volume:/app/media
+      - static_volume:/var/html/static
+      - media_volume:/var/html/media
     depends_on:
       - backend
     restart: always
