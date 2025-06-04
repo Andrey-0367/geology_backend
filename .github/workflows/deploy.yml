@@ -1,92 +1,48 @@
-name: Deploy to Production
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Setup Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
-    - name: Login to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        registry: docker.io
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-    - name: Build and push backend image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: Dockerfile
-        push: true
-        tags: |
-          docker.io/pochek/geology_backend:latest
-        cache: false
-
-    - name: Build and push nginx image
-      uses: docker/build-push-action@v5
-      with:
-        context: nginx
-        file: nginx/Dockerfile
-        push: true
-        tags: |
-          docker.io/pochek/geology_nginx:latest
-        cache: false
-
-    - name: Deploy to server
-      uses: appleboy/ssh-action@v0.1.10
-      with:
-        host: ${{ secrets.SERVER_IP }}
-        port: ${{ secrets.SSH_PORT }}
-        username: ${{ secrets.SSH_USERNAME }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          # Убедимся, что Docker работает
-          sudo systemctl start docker || true
-          sudo systemctl enable docker || true
-          
-          # Добавим пользователя в группу docker
-          sudo usermod -aG docker $USER || true
-          newgrp docker || true
-          
-          # Перейдем в директорию проекта
-          cd /opt/geology_backend
-          
-          # Обновим контейнеры
-          sudo docker compose pull
-          
-          # Перезапустим приложение
-          sudo docker compose down
-          sudo docker compose up -d
-          
-          # Применим миграции и соберем статику
-          sudo docker compose exec -T backend python manage.py migrate --noinput
-          sudo docker compose exec -T backend python manage.py collectstatic --noinput
-          
-          # Проверим статус контейнеров
-          sudo docker compose ps
-          sudo docker compose logs --tail=20
-          
-          sudo docker compose -f docker-compose.yml pull
-          sudo docker compose -f docker-compose.yml down
-          sudo docker compose -f docker-compose.yml up -d
-          sudo docker compose -f docker-compose.yml exec -T backend python manage.py migrate --noinput
-          sudo docker compose -f docker-compose.yml exec -T backend python manage.py collectstatic --noinput
+- name: Deploy to server
+  uses: appleboy/ssh-action@v0.1.10
+  with:
+    host: ${{ secrets.SERVER_IP }}
+    port: ${{ secrets.SSH_PORT }}
+    username: ${{ secrets.SSH_USERNAME }}
+    key: ${{ secrets.SSH_PRIVATE_KEY }}
+    script: |
+      # Убедимся, что Docker работает
+      sudo systemctl start docker || true
+      sudo systemctl enable docker || true
       
-          # Проверка
-          sudo docker compose -f docker-compose.yml ps
-          
-          # Проверим доступность админки
-          echo "Проверка админки:"
-          curl -I http://localhost/admin/ || true
+      # Добавим пользователя в группу docker
+      sudo usermod -aG docker $USER || true
+      newgrp docker || true
+      
+      # Перейдем в директорию проекта
+      cd /opt/geology_backend
+      
+      # --- ИСПРАВЛЕНИЕ НАЧИНАЕТСЯ ЗДЕСЬ ---
+      # Сбрасываем локальные изменения и обновляем репозиторий
+      git reset --hard HEAD
+      git clean -fd
+      git pull origin main
+      
+      # Убедимся, что файлы обновились
+      git status
+      git log -1
+      # --- ИСПРАВЛЕНИЕ ЗАКАНЧИВАЕТСЯ ЗДЕСЬ ---
+      
+      # Обновим контейнеры
+      sudo docker compose pull
+      
+      # Перезапустим приложение
+      sudo docker compose down
+      sudo docker compose up -d
+      
+      # Применим миграции и соберем статику
+      sudo docker compose exec -T backend python manage.py migrate --noinput
+      sudo docker compose exec -T backend python manage.py collectstatic --noinput
+      
+      # Проверим статус контейнеров
+      sudo docker compose ps
+      sudo docker compose logs --tail=20
+      
+      # Проверим доступность админки
+      echo "Проверка админки:"
+      curl -I http://localhost/admin/ || true
