@@ -2,10 +2,13 @@ services:
   db:
     image: postgres:13.10
     env_file: .env.production
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - pg_data:/var/lib/postgresql/data
     restart: unless-stopped
-
   backend:
     image: docker.io/pochek/geology_backend:latest
     env_file: .env.production
