@@ -37,7 +37,7 @@
 #  static_volume:
 #  media_volume:
 
-version: '3.8'
+
 
 services:
   db:
