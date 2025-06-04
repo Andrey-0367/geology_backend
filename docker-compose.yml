@@ -26,9 +26,15 @@ services:
     ports:
       - "80:80"
     volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
       - static_volume:/app/collected_static
+      - media_volume:/app/media
     depends_on:
       - backend
+    restart: always
 volumes:
   pg_data:
   static_volume:
+  media_volume:
+
+
