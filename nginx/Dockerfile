@@ -4,7 +4,7 @@ FROM nginx:alpine
 RUN rm /etc/nginx/conf.d/default.conf
 
 # Копируем наш конфиг
-COPY nginx.conf /etc/nginx/conf.d/geology.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Явно указываем команду запуска (хотя базовый образ уже имеет CMD)
+# Явно указываем команду запуска
 CMD ["nginx", "-g", "daemon off;"]
