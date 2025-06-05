@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', default='the-best-secret-key')
 
 
-ALLOWED_HOSTS = ['83.166.245.78', 'www.geologiya-ru.ru', 'geologiya-ru.ru']
+ALLOWED_HOSTS = ['83.166.245.78', 'www.geologiya-ru.ru', 'geologiya-ru.ru', 'localhost', 'backend']
 
 DEBUG = False
 
