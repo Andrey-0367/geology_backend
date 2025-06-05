@@ -1,7 +1,10 @@
-FROM nginx:alpine
+#FROM nginx:alpine
+#
+## Удаляем дефолтный конфиг
+#RUN rm /etc/nginx/conf.d/default.conf
+#
+## Копируем наш конфиг
+#COPY nginx.conf /etc/nginx/conf.d/
 
-# Удаляем дефолтный конфиг
-RUN rm /etc/nginx/conf.d/default.conf
-
-# Копируем наш конфиг
-COPY nginx.conf /etc/nginx/conf.d/
+FROM nginx:1.22.1
+COPY nginx.conf /etc/nginx/templates/default.conf.template
