@@ -22,13 +22,13 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    image_url = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()  # Используйте имя поля модели
 
     class Meta:
         model = Category
         fields = ['id', 'name', 'image', 'slug', 'is_active']
 
-    def get_image_url(self, obj):
+    def get_image(self, obj):
         if obj.image:
             return self.context['request'].build_absolute_uri(obj.image.url)
         return None
