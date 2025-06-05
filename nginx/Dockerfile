@@ -1,10 +1,10 @@
-FROM nginx:alpine
+FROM nginx:1.25-alpine
 
-# Удаляем дефолтный конфиг
-RUN rm /etc/nginx/conf.d/default.conf
+# Удаляем все дефолтные конфиги
+RUN rm -rf /etc/nginx/conf.d/*
 
 # Копируем наш конфиг
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Явно указываем команду запуска
-CMD ["nginx", "-g", "daemon off;"]
+# Проверяем конфигурацию при сборке
+RUN nginx -t

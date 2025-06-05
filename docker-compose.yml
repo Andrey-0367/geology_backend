@@ -26,7 +26,6 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
       - static_volume:/var/html/static
       - media_volume:/var/html/media
     depends_on:
