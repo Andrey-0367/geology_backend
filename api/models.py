@@ -1,5 +1,8 @@
+import os
+
 from django.db import models
 from django.conf import settings
+from pytils.translit import slugify
 
 
 class ContactMessage(models.Model):
@@ -17,6 +20,14 @@ class Employee(models.Model):
     positions = models.TextField("Должности", blank=True)
     bio = models.TextField("Биография", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if self.photo:
+
+            ext = os.path.splitext(self.photo.name)[1]
+            filename = f"{slugify(self.full_name)}-{self.id}{ext}"
+            self.photo.name = os.path.join('employees', filename)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.full_name
