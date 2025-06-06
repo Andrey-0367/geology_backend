@@ -22,11 +22,24 @@ class Employee(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        if self.photo:
+        if not self.id:
+            super().save(*args, **kwargs)
 
+        if self.photo:
             ext = os.path.splitext(self.photo.name)[1]
             filename = f"{slugify(self.full_name)}-{self.id}{ext}"
-            self.photo.name = os.path.join('employees', filename)
+            new_path = os.path.join('employees', filename)
+
+            if self.photo.name != new_path:
+                old_full_path = os.path.join(settings.MEDIA_ROOT, self.photo.name)
+                new_full_path = os.path.join(settings.MEDIA_ROOT, new_path)
+
+                os.makedirs(os.path.dirname(new_full_path), exist_ok=True)
+
+                if os.path.exists(old_full_path):
+                    os.rename(old_full_path, new_full_path)
+
+                self.photo.name = new_path
         super().save(*args, **kwargs)
 
     def __str__(self):
