@@ -2,7 +2,7 @@ import os
 
 from django.db import models
 from django.conf import settings
-from pytils.translit import slugify
+from django.utils.text import slugify
 
 
 class ContactMessage(models.Model):
