@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ContactMessage, Employee, Category, Product, OrderItem, Order
+from .models import ContactMessage, Employee, Category, Product, OrderItem, Order, SaleItem, SaleItemImage
 
 
 class ContactMessageSerializer(serializers.ModelSerializer):
@@ -88,3 +88,31 @@ class OrderSerializer(serializers.ModelSerializer):
         order.total = total
         order.save()
         return order
+
+
+class SaleItemImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SaleItemImage
+        fields = ['id', 'image', 'is_main', 'order', 'sale_item']  # Оставляем sale_item
+        extra_kwargs = {
+            'sale_item': {'required': True}  # Явно указываем что поле обязательно
+        }
+
+
+class SaleItemSerializer(serializers.ModelSerializer):
+    images = SaleItemImageSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = SaleItem
+        fields = [
+            'id',
+            'title',
+            'slug',
+            'description',
+            'old_price',
+            'new_price',
+            'is_active',
+            'created_at',
+            'images'
+        ]
+        read_only_fields = ['slug', 'created_at']

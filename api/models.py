@@ -3,6 +3,7 @@ import os
 from django.db import models
 from django.conf import settings
 from django.utils.text import slugify
+from django.core.validators import MinValueValidator
 
 
 class ContactMessage(models.Model):
@@ -41,6 +42,10 @@ class Employee(models.Model):
 
                 self.photo.name = new_path
         super().save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = "Сотрудник"
+        verbose_name_plural = "Команда"
 
     def __str__(self):
         return self.full_name
@@ -139,3 +144,67 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.product.name} x{self.quantity}"
+
+
+class SaleItem(models.Model):
+    title = models.CharField("Название", max_length=255)
+    slug = models.SlugField("URL-адрес", max_length=255, unique=True)
+    description = models.TextField("Описание")
+    old_price = models.DecimalField(
+        "Старая цена",
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0.01)]
+    )
+    new_price = models.DecimalField(
+        "Новая цена",
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0.01)]
+    )
+    is_active = models.BooleanField("Активный", default=True)
+    created_at = models.DateTimeField("Дата создания", auto_now_add=True)
+    updated_at = models.DateTimeField("Дата обновления", auto_now=True)
+
+    class Meta:
+        verbose_name = "Товар распродажи"
+        verbose_name_plural = "Товары распродажи"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
+
+class SaleItemImage(models.Model):
+    sale_item = models.ForeignKey(
+        SaleItem,
+        related_name='images',
+        on_delete=models.CASCADE,
+        verbose_name="Товар распродажи"
+    )
+    image = models.ImageField(
+        "Изображение",
+        upload_to='sale_items/'
+    )
+    is_main = models.BooleanField(
+        "Главное изображение",
+        default=False,
+        help_text="Используется как основное в списках товаров"
+    )
+    order = models.PositiveIntegerField(
+        "Порядок сортировки",
+        default=0
+    )
+
+    class Meta:
+        verbose_name = "Изображение товара распродажи"
+        verbose_name_plural = "Изображения товаров распродажи"
+        ordering = ['order']
+
+    def __str__(self):
+        return f"Изображение для {self.sale_item.title}"

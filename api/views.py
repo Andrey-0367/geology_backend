@@ -1,15 +1,15 @@
 from rest_framework import viewsets, mixins, permissions
 from django.core.mail import send_mail
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+from rest_framework.decorators import action
 from django.conf import settings
-from .models import ContactMessage, Employee, Category, Product, Order
+from .models import ContactMessage, Employee, Category, Product, Order, SaleItemImage, SaleItem
 from .serializers import ContactMessageSerializer, EmployeeSerializer, CategorySerializer, ProductSerializer, \
-    OrderSerializer
+    OrderSerializer, SaleItemImageSerializer, SaleItemSerializer
 
 
-class ContactMessageViewSet(
-    mixins.CreateModelMixin,
-    viewsets.GenericViewSet
-):
+class ContactMessageViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     """
     ViewSet для обработки контактных сообщений
     Только операция создания (POST)
@@ -67,3 +67,27 @@ class OrderViewSet(viewsets.ModelViewSet):
             serializer.save(user=self.request.user)
         else:
             serializer.save()
+
+
+class SaleItemViewSet(viewsets.ModelViewSet):
+    queryset = SaleItem.objects.prefetch_related('images').all()
+    serializer_class = SaleItemSerializer
+    lookup_field = 'slug'
+
+    def get_queryset(self):
+        """Фильтрация активных товаров для списка"""
+        if self.action == 'list':
+            return self.queryset.filter(is_active=True)
+        return self.queryset
+
+
+class SaleItemImageViewSet(viewsets.ModelViewSet):
+    serializer_class = SaleItemImageSerializer
+    queryset = SaleItemImage.objects.all()
+
+    def get_queryset(self):
+        # Фильтрация по query-параметру ?sale_item=<id>
+        sale_item_id = self.request.query_params.get('sale_item')
+        if sale_item_id:
+            return SaleItemImage.objects.filter(sale_item_id=sale_item_id)
+        return super().get_queryset()
