@@ -31,47 +31,19 @@ class ProductAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
 
 
-class SaleItemImageInline(admin.TabularInline):
-    model = SaleItemImage
-    extra = 1
-    fields = ['image', 'is_main', 'order']
-    readonly_fields = ['preview']
-
-    def preview(self, instance):
-        if instance.image:
-            return f'<img src="{instance.image.url}" style="max-height: 100px;" />'
-        return '-'
-
-    preview.allow_tags = True
+@admin.register(SaleItemImage)
+class SaleItemImageAdmin(admin.ModelAdmin):
+    list_display = ('sale_item', 'is_main', 'order')
+    list_editable = ('is_main', 'order')
+    list_filter = ('sale_item', 'is_main')
+    search_fields = ('sale_item__title',)
+    fields = ('sale_item', 'image', 'is_main', 'order')
 
 
 @admin.register(SaleItem)
 class SaleItemAdmin(admin.ModelAdmin):
-    list_display = ['title', 'old_price', 'new_price', 'is_active', 'created_at']
-    list_filter = ['is_active', 'created_at']
-    search_fields = ['title', 'description']
+    list_display = ('title', 'old_price', 'new_price', 'is_active', 'created_at')
+    list_filter = ('is_active', 'created_at')
+    search_fields = ('title', 'description')
     prepopulated_fields = {'slug': ('title',)}
-    inlines = [SaleItemImageInline]
-    fieldsets = (
-        (None, {
-            'fields': ('title', 'slug', 'description', 'is_active')
-        }),
-        ('Цены', {
-            'fields': ('old_price', 'new_price'),
-        }),
-    )
-
-
-@admin.register(SaleItemImage)
-class SaleItemImageAdmin(admin.ModelAdmin):
-    list_display = ['sale_item', 'preview', 'is_main', 'order']
-    list_editable = ['is_main', 'order']
-    list_filter = ['sale_item', 'is_main']
-    search_fields = ['sale_item__title']
-
-    def preview(self, instance):
-        if instance.image:
-            return f'<img src="{instance.image.url}" style="max-height: 50px;" />'
-        return '-'
-
-    preview.allow_tags = True
+    fields = ('title', 'slug', 'description', 'old_price', 'new_price', 'is_active')
