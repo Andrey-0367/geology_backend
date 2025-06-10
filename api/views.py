@@ -1,7 +1,6 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, mixins, permissions
 from django.core.mail import send_mail
-from rest_framework import viewsets, filters
+from rest_framework import viewsets, filters,  mixins, permissions
 from django.conf import settings
 from .models import ContactMessage, Employee, Category, Product, Order, SaleItemImage, SaleItem, ProductImage
 from .serializers import ContactMessageSerializer, EmployeeSerializer, CategorySerializer, ProductSerializer, \
@@ -45,7 +44,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.prefetch_related('images').all()
+    queryset = Product.objects.prefetch_related('images').select_related('category').all()
     serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['category', 'stock_quantity']
