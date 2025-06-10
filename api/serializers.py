@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ContactMessage, Employee, Category, Product, OrderItem, Order, SaleItem, SaleItemImage
+from .models import ContactMessage, Employee, Category, Product, OrderItem, Order, SaleItem, SaleItemImage, ProductImage
 
 
 class ContactMessageSerializer(serializers.ModelSerializer):
@@ -22,39 +22,41 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    image = serializers.SerializerMethodField()  # Используйте имя поля модели
-
     class Meta:
         model = Category
-        fields = ['id', 'name', 'image', 'slug', 'is_active']
+        fields = ['id', 'name_plural', 'slug', 'image']
+        read_only_fields = ['slug']
 
-    def get_image(self, obj):
-        if obj.image:
-            return self.context['request'].build_absolute_uri(obj.image.url)
-        return None
+
+class ProductImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductImage
+        fields = ['id', 'image', 'order']
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    category = CategorySerializer(read_only=True)
-    image_url = serializers.SerializerMethodField()
+    images = ProductImageSerializer(many=True, read_only=True)
+    category_name = serializers.CharField(source='category.name_plural', read_only=True)
 
     class Meta:
         model = Product
         fields = [
             'id',
-            'name',
-            'price',
-            'image_url',
-            'description',
             'category',
-            'slug',
-            'created_at'
+            'category_name',
+            'name_singular',
+            'marking',
+            'price',
+            'stock_quantity',
+            'description',
+            'specifications',
+            'images',
+            'created_at',
+            'updated_at'
         ]
-
-    def get_image_url(self, obj):
-        if obj.image:
-            return self.context['request'].build_absolute_uri(obj.image.url)
-        return None
+        extra_kwargs = {
+            'category': {'write_only': True}
+        }
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -100,19 +102,20 @@ class SaleItemImageSerializer(serializers.ModelSerializer):
 
 
 class SaleItemSerializer(serializers.ModelSerializer):
-    images = SaleItemImageSerializer(many=True, read_only=True)
+    main_image = serializers.SerializerMethodField()
 
     class Meta:
         model = SaleItem
         fields = [
-            'id',
-            'title',
-            'slug',
-            'description',
-            'old_price',
-            'new_price',
-            'is_active',
-            'created_at',
-            'images'
+            'id', 'title', 'slug', 'description',
+            'old_price', 'new_price', 'is_active',
+            'created_at', 'main_image'
         ]
         read_only_fields = ['slug', 'created_at']
+
+    @staticmethod
+    def get_main_image(obj):
+        main_image = obj.images.filter(is_main=True).first()
+        if main_image:
+            return main_image.image.url
+        return None

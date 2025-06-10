@@ -1,12 +1,11 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, mixins, permissions
 from django.core.mail import send_mail
-from rest_framework import viewsets, status
-from rest_framework.response import Response
-from rest_framework.decorators import action
+from rest_framework import viewsets, filters
 from django.conf import settings
-from .models import ContactMessage, Employee, Category, Product, Order, SaleItemImage, SaleItem
+from .models import ContactMessage, Employee, Category, Product, Order, SaleItemImage, SaleItem, ProductImage
 from .serializers import ContactMessageSerializer, EmployeeSerializer, CategorySerializer, ProductSerializer, \
-    OrderSerializer, SaleItemImageSerializer, SaleItemSerializer
+    OrderSerializer, SaleItemImageSerializer, SaleItemSerializer, ProductImageSerializer
 
 
 class ContactMessageViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
@@ -39,16 +38,26 @@ class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['name_plural']
+    ordering_fields = ['name_plural']
+    lookup_field = 'slug'
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['request'] = self.request
-        return context
 
-
-class ProductViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Product.objects.filter(is_active=True)
+class ProductViewSet(viewsets.ModelViewSet):
+    queryset = Product.objects.prefetch_related('images').all()
     serializer_class = ProductSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['category', 'stock_quantity']
+    search_fields = ['name_singular', 'marking', 'description']
+    ordering_fields = ['price', 'created_at', 'stock_quantity']
+
+
+class ProductImageViewSet(viewsets.ModelViewSet):
+    queryset = ProductImage.objects.all()
+    serializer_class = ProductImageSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['product', 'order']
 
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -86,7 +95,6 @@ class SaleItemImageViewSet(viewsets.ModelViewSet):
     queryset = SaleItemImage.objects.all()
 
     def get_queryset(self):
-        # Фильтрация по query-параметру ?sale_item=<id>
         sale_item_id = self.request.query_params.get('sale_item')
         if sale_item_id:
             return SaleItemImage.objects.filter(sale_item_id=sale_item_id)

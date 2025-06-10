@@ -52,20 +52,29 @@ class Employee(models.Model):
 
 
 class Category(models.Model):
-    name = models.CharField("Название категории", max_length=255)
-    image = models.ImageField("Изображение категории", upload_to='categories/', blank=True, null=True)
-    slug = models.SlugField("URL-адрес", max_length=255, unique=True)
-    created_at = models.DateTimeField("Дата создания", auto_now_add=True)
-    updated_at = models.DateTimeField("Дата обновления", auto_now=True)
-    is_active = models.BooleanField("Активная", default=True)
+    name_plural = models.CharField(
+        max_length=255,
+        verbose_name="Название (во множественном числе)",
+        unique=True
+    )
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
+    image = models.ImageField(
+        upload_to='categories/',
+        verbose_name="Фото категории"
+    )
 
     class Meta:
-        ordering = ['name']
         verbose_name = "Категория"
         verbose_name_plural = "Категории"
+        ordering = ['name_plural']
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name_plural)
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.name
+        return self.name_plural
 
 
 class Product(models.Model):
@@ -75,22 +84,76 @@ class Product(models.Model):
         related_name='products',
         verbose_name="Категория"
     )
-    name = models.CharField("Название товара", max_length=255)
-    price = models.DecimalField("Цена", max_digits=10, decimal_places=2)
-    image = models.ImageField("Изображение товара", upload_to='products/')
-    description = models.TextField("Описание товара", blank=True)
-    slug = models.SlugField("URL-адрес", max_length=255, unique=True)
-    created_at = models.DateTimeField("Дата создания", auto_now_add=True)
-    updated_at = models.DateTimeField("Дата обновления", auto_now=True)
-    is_active = models.BooleanField("Активный", default=True)
+    name_singular = models.CharField(
+        max_length=255,
+        verbose_name="Название (в единственном числе)"
+    )
+    marking = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name="Маркировка"
+    )
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Цена"
+    )
+    stock_quantity = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Количество на складе"
+    )
+    description = models.TextField(
+        verbose_name="Описание"
+    )
+    specifications = models.JSONField(
+        blank=True,
+        null=True,
+        verbose_name="Характеристики"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Дата создания"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Дата обновления"
+    )
 
     class Meta:
+        verbose_name = "Продукт"
+        verbose_name_plural = "Продукты"
         ordering = ['-created_at']
-        verbose_name = "Товар"
-        verbose_name_plural = "Товары"
+        unique_together = [['name_singular', 'marking']]
 
     def __str__(self):
-        return self.name
+        if self.marking:
+            return f"{self.name_singular} [{self.marking}]"
+        return self.name_singular
+
+
+class ProductImage(models.Model):
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name='images'
+    )
+    image = models.ImageField(
+        upload_to='products/',
+        verbose_name="Изображение"
+    )
+    order = models.PositiveSmallIntegerField(
+        default=0,
+        verbose_name="Порядок"
+    )
+
+    class Meta:
+        verbose_name = "Изображение продукта"
+        verbose_name_plural = "Изображения продуктов"
+        ordering = ['order']
+
+    def __str__(self):
+        return f"Изображение {self.id} для {self.product}"
 
 
 class Order(models.Model):
