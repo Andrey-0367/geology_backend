@@ -24,39 +24,35 @@ class EmployeeSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['id', 'name_plural', 'slug', 'image']
-        read_only_fields = ['slug']
+        fields = ['id', 'name', 'image']
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
-        fields = ['id', 'image', 'order']
+        fields = ['id', 'image']
 
 
 class ProductSerializer(serializers.ModelSerializer):
     images = ProductImageSerializer(many=True, read_only=True)
-    category_name = serializers.CharField(source='category.name_plural', read_only=True)
 
     class Meta:
         model = Product
         fields = [
             'id',
             'category',
-            'category_name',
-            'name_singular',
-            'marking',
-            'price',
-            'stock_quantity',
+            'name',
+            'size',
             'description',
-            'specifications',
-            'images',
-            'created_at',
-            'updated_at'
+            'quantity',
+            'brand',
+            'thread_connection',
+            'thread_connection_2',
+            'armament',
+            'seal',
+            'iadc',
+            'images'
         ]
-        extra_kwargs = {
-            'category': {'write_only': True}
-        }
 
 
 class OrderItemSerializer(serializers.ModelSerializer):

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 
 from .models import Employee, Category, Product, SaleItemImage, SaleItem, ProductImage
 
@@ -17,88 +17,55 @@ class EmployeeAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('name_plural', 'slug', 'image_preview')
-    search_fields = ('name_plural',)
-    prepopulated_fields = {'slug': ('name_plural',)}
-
-    def image_preview(self, obj):
-        if obj.image:
-            return format_html('<img src="{}" width="50" height="50" />', obj.image.url)
-        return "Нет изображения"
-
-    image_preview.short_description = "Превью"
-    readonly_fields = ('image_preview',)
-
-
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
     extra = 1
-    fields = ('image', 'order', 'preview')
-    readonly_fields = ('preview',)
+    fields = ['image', 'preview']
+    readonly_fields = ['preview']
 
     def preview(self, obj):
         if obj.image:
-            return format_html('<img src="{}" width="50" height="50" />', obj.image.url)
-        return "Нет изображения"
+            return mark_safe(f'<img src="{obj.image.url}" style="max-height: 100px;"/>')
+        return "-"
 
-    preview.short_description = "Превью"
+    preview.short_description = "Предпросмотр"
 
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = (
-        'name_singular',
-        'marking',
-        'category',
-        'price',
-        'stock_quantity',
-        'created_at',
-    )
-    list_filter = ('category', 'created_at')
-    search_fields = (
-        'name_singular',
-        'marking',
-        'description',
-        'category__name_plural'
-    )
-    date_hierarchy = 'created_at'
-    raw_id_fields = ('category',)
-    inlines = (ProductImageInline,)
+    list_display = ['name', 'size', 'category', 'quantity']
+    list_filter = ['category']
+    search_fields = ['name', 'description']
+    inlines = [ProductImageInline]
+
     fieldsets = (
         (None, {
-            'fields': (
-                'category',
-                'name_singular',
-                'marking',
-                'price',
-                'stock_quantity'
-            )
+            'fields': ('category', 'name', 'size', 'description', 'quantity')
         }),
-        ('Описание', {
-            'fields': ('description', 'specifications')
-        }),
-        ('Даты', {
-            'fields': ('created_at', 'updated_at'),
+        ('Дополнительные характеристики', {
+            'fields': ('brand', 'thread_connection', 'thread_connection_2', 'armament', 'seal', 'iadc'),
             'classes': ('collapse',)
         }),
     )
-    readonly_fields = ('created_at', 'updated_at')
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ['name']
+    search_fields = ['name']
 
 
 @admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
-    list_display = ('product', 'order', 'preview')
-    list_editable = ('order',)
-    raw_id_fields = ('product',)
+    list_display = ['product', 'preview']
+    readonly_fields = ['preview']
 
     def preview(self, obj):
         if obj.image:
-            return format_html('<img src="{}" width="50" height="50" />', obj.image.url)
-        return "Нет изображения"
+            return mark_safe(f'<img src="{obj.image.url}" style="max-height: 200px;"/>')
+        return "-"
 
-    preview.short_description = "Превью"
+    preview.short_description = "Изображение"
 
 
 @admin.register(SaleItemImage)

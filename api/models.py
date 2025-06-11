@@ -4,6 +4,7 @@ from django.db import models
 from django.conf import settings
 from django.utils.text import slugify
 from django.core.validators import MinValueValidator
+from django.utils.translation import gettext_lazy as _
 
 
 class ContactMessage(models.Model):
@@ -52,29 +53,15 @@ class Employee(models.Model):
 
 
 class Category(models.Model):
-    name_plural = models.CharField(
-        max_length=255,
-        verbose_name="Название (во множественном числе)",
-        unique=True
-    )
-    slug = models.SlugField(max_length=255, unique=True, blank=True)
-    image = models.ImageField(
-        upload_to='categories/',
-        verbose_name="Фото категории"
-    )
+    name = models.CharField(_('Название'), max_length=255)
+    image = models.ImageField(_('Фото'), upload_to='categories/', blank=True, null=True)
 
     class Meta:
-        verbose_name = "Категория"
-        verbose_name_plural = "Категории"
-        ordering = ['name_plural']
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name_plural)
-        super().save(*args, **kwargs)
+        verbose_name = _('Категория')
+        verbose_name_plural = _('Категории')
 
     def __str__(self):
-        return self.name_plural
+        return self.name
 
 
 class Product(models.Model):
@@ -82,78 +69,44 @@ class Product(models.Model):
         Category,
         on_delete=models.CASCADE,
         related_name='products',
-        verbose_name="Категория"
+        verbose_name=_('Категория')
     )
-    name_singular = models.CharField(
-        max_length=255,
-        verbose_name="Название (в единственном числе)"
-    )
-    marking = models.CharField(
-        max_length=100,
-        blank=True,
-        null=True,
-        verbose_name="Маркировка"
-    )
-    price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        verbose_name="Цена"
-    )
-    stock_quantity = models.PositiveIntegerField(
-        default=0,
-        verbose_name="Количество на складе"
-    )
-    description = models.TextField(
-        verbose_name="Описание"
-    )
-    specifications = models.JSONField(
-        blank=True,
-        null=True,
-        verbose_name="Характеристики"
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name="Дата создания"
-    )
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        verbose_name="Дата обновления"
-    )
+    name = models.CharField(_('Название'), max_length=255)
+    size = models.CharField(_('Размер'), max_length=100)
+    description = models.TextField(_('Описание'))
+    quantity = models.PositiveIntegerField(_('Количество'))
+
+    # Необязательные поля
+    brand = models.CharField(_('Марка'), max_length=100, blank=True, null=True)
+    thread_connection = models.CharField(_('Присоединительная резьба'), max_length=100, blank=True, null=True)
+    thread_connection_2 = models.CharField(_('Присоединительная резьба 2'), max_length=100, blank=True, null=True)
+    armament = models.CharField(_('Вооружение'), max_length=100, blank=True, null=True)
+    seal = models.CharField(_('Уплотнение'), max_length=100, blank=True, null=True)
+    iadc = models.CharField(_('IADC'), max_length=100, blank=True, null=True)
 
     class Meta:
-        verbose_name = "Продукт"
-        verbose_name_plural = "Продукты"
-        ordering = ['-created_at']
-        unique_together = [['name_singular', 'marking']]
+        verbose_name = _('Продукт')
+        verbose_name_plural = _('Продукты')
 
     def __str__(self):
-        if self.marking:
-            return f"{self.name_singular} [{self.marking}]"
-        return self.name_singular
+        return f"{self.name} ({self.size})"
 
 
 class ProductImage(models.Model):
     product = models.ForeignKey(
         Product,
         on_delete=models.CASCADE,
-        related_name='images'
+        related_name='images',
+        verbose_name=_('Продукт')
     )
-    image = models.ImageField(
-        upload_to='products/',
-        verbose_name="Изображение"
-    )
-    order = models.PositiveSmallIntegerField(
-        default=0,
-        verbose_name="Порядок"
-    )
+    image = models.ImageField(_('Фото'), upload_to='products/')
 
     class Meta:
-        verbose_name = "Изображение продукта"
-        verbose_name_plural = "Изображения продуктов"
-        ordering = ['order']
+        verbose_name = _('Изображение продукта')
+        verbose_name_plural = _('Изображения продуктов')
 
     def __str__(self):
-        return f"Изображение {self.id} для {self.product}"
+        return f"Изображение для {self.product.name}"
 
 
 class Order(models.Model):

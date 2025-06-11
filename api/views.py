@@ -37,26 +37,16 @@ class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['name_plural']
-    ordering_fields = ['name_plural']
-    lookup_field = 'slug'
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.prefetch_related('images').select_related('category').all()
+    queryset = Product.objects.select_related('category').prefetch_related('images')
     serializer_class = ProductSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['category', 'stock_quantity']
-    search_fields = ['name_singular', 'marking', 'description']
-    ordering_fields = ['price', 'created_at', 'stock_quantity']
 
 
 class ProductImageViewSet(viewsets.ModelViewSet):
     queryset = ProductImage.objects.all()
     serializer_class = ProductImageSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['product', 'order']
 
 
 class OrderViewSet(viewsets.ModelViewSet):
