@@ -57,15 +57,17 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
-    list_display = ['product', 'preview']
-    readonly_fields = ['preview']
+    list_display = ['id', 'product', 'image_preview', 'is_main', 'order']
+    list_editable = ['is_main', 'order']
+    list_filter = ['product', 'is_main']
+    search_fields = ['product__name']
+    readonly_fields = ['image_preview']
 
-    def preview(self, obj):
+    def image_preview(self, obj):
         if obj.image:
-            return mark_safe(f'<img src="{obj.image.url}" style="max-height: 200px;"/>')
-        return "-"
-
-    preview.short_description = "Изображение"
+            return mark_safe(f'<img src="{obj.image.url}" height="100" />')
+        return "Нет изображения"
+    image_preview.short_description = "Превью"
 
 
 @admin.register(SaleItemImage)

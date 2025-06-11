@@ -95,18 +95,37 @@ class Product(models.Model):
 class ProductImage(models.Model):
     product = models.ForeignKey(
         Product,
-        on_delete=models.CASCADE,
         related_name='images',
+        on_delete=models.CASCADE,
         verbose_name=_('Продукт')
     )
-    image = models.ImageField(_('Фото'), upload_to='products/')
+    image = models.ImageField(
+        _('Фото'),
+        upload_to='products/'
+    )
+    is_main = models.BooleanField(
+        _('Главное изображение'),
+        default=False,
+        help_text=_('Используется как основное в списках товаров')
+    )
+    order = models.PositiveIntegerField(
+        _('Порядок сортировки'),
+        default=0
+    )
 
     class Meta:
         verbose_name = _('Изображение продукта')
         verbose_name_plural = _('Изображения продуктов')
+        ordering = ['order']
 
     def __str__(self):
         return f"Изображение для {self.product.name}"
+
+    def save(self, *args, **kwargs):
+        # При сохранении главного изображения сбрасываем флаг у других
+        if self.is_main:
+            ProductImage.objects.filter(product=self.product).exclude(id=self.id).update(is_main=False)
+        super().save(*args, **kwargs)
 
 
 class Order(models.Model):

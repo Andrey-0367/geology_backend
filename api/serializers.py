@@ -28,12 +28,23 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
     class Meta:
         model = ProductImage
-        fields = ['id', 'image']
+        fields = ['id', 'image_url', 'is_main', 'order', 'product']
+        extra_kwargs = {
+            'product': {'required': True}
+        }
+
+    def get_image_url(self, obj):
+        if obj.image:
+            return self.context['request'].build_absolute_uri(obj.image.url)
+        return None
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    main_image = serializers.SerializerMethodField()
     images = ProductImageSerializer(many=True, read_only=True)
 
     class Meta:
@@ -51,8 +62,15 @@ class ProductSerializer(serializers.ModelSerializer):
             'armament',
             'seal',
             'iadc',
+            'main_image',
             'images'
         ]
+
+    def get_main_image(self, obj):
+        main_image = obj.images.filter(is_main=True).first()
+        if main_image:
+            return self.context['request'].build_absolute_uri(main_image.image.url)
+        return None
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -91,9 +109,9 @@ class OrderSerializer(serializers.ModelSerializer):
 class SaleItemImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = SaleItemImage
-        fields = ['id', 'image', 'is_main', 'order', 'sale_item']  # Оставляем sale_item
+        fields = ['id', 'image', 'is_main', 'order', 'sale_item']
         extra_kwargs = {
-            'sale_item': {'required': True}  # Явно указываем что поле обязательно
+            'sale_item': {'required': True}
         }
 
 

@@ -1,7 +1,8 @@
-from django_filters.rest_framework import DjangoFilterBackend
 from django.core.mail import send_mail
 from rest_framework import viewsets, filters,  mixins, permissions
 from django.conf import settings
+from rest_framework.parsers import MultiPartParser, FormParser
+
 from .models import ContactMessage, Employee, Category, Product, Order, SaleItemImage, SaleItem, ProductImage
 from .serializers import ContactMessageSerializer, EmployeeSerializer, CategorySerializer, ProductSerializer, \
     OrderSerializer, SaleItemImageSerializer, SaleItemSerializer, ProductImageSerializer
@@ -40,13 +41,31 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.select_related('category').prefetch_related('images')
+    queryset = Product.objects.prefetch_related('images').all()
     serializer_class = ProductSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 
 class ProductImageViewSet(viewsets.ModelViewSet):
-    queryset = ProductImage.objects.all()
     serializer_class = ProductImageSerializer
+    parser_classes = (MultiPartParser, FormParser)
+    queryset = ProductImage.objects.all()
+
+    def get_queryset(self):
+        """Фильтрация по product_id"""
+        product_id = self.request.query_params.get('product')
+        if product_id:
+            return ProductImage.objects.filter(product_id=product_id)
+        return super().get_queryset()
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 
 class OrderViewSet(viewsets.ModelViewSet):
