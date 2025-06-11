@@ -2,9 +2,11 @@ import os
 
 from django.db import models
 from django.conf import settings
+from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 from django.core.validators import MinValueValidator
 from django.utils.translation import gettext_lazy as _
+from .validators import validate_image_extension, validate_image_size, validate_svg_content
 
 
 class ContactMessage(models.Model):
@@ -54,14 +56,26 @@ class Employee(models.Model):
 
 class Category(models.Model):
     name = models.CharField(_('Название'), max_length=255)
-    image = models.ImageField(_('Фото'), upload_to='categories/', blank=True, null=True)
+    image = models.FileField(
+        _('Изображение'),
+        upload_to='categories/',
+        blank=True,
+        null=True,
+        validators=[
+            validate_image_extension,
+            validate_image_size,
+            validate_svg_content
+        ]
+    )
 
-    class Meta:
-        verbose_name = _('Категория')
-        verbose_name_plural = _('Категории')
+    def image_preview(self):
+        if self.image:
+            if self.image.name.endswith('.svg'):
+                return mark_safe(f'<img src="{self.image.url}" height="100" />')
+            return mark_safe(f'<img src="{self.image.url}" height="100" />')
+        return _("Нет изображения")
 
-    def __str__(self):
-        return self.name
+    image_preview.short_description = _("Превью")
 
 
 class Product(models.Model):
@@ -74,7 +88,10 @@ class Product(models.Model):
     name = models.CharField(_('Название'), max_length=255)
     size = models.CharField(_('Размер'), max_length=100)
     description = models.TextField(_('Описание'))
-    quantity = models.PositiveIntegerField(_('Количество'))
+    quantity = models.PositiveIntegerField(
+        _('Количество'),
+        default=0
+    )
 
     # Необязательные поля
     brand = models.CharField(_('Марка'), max_length=100, blank=True, null=True)
@@ -99,9 +116,14 @@ class ProductImage(models.Model):
         on_delete=models.CASCADE,
         verbose_name=_('Продукт')
     )
-    image = models.ImageField(
-        _('Фото'),
-        upload_to='products/'
+    image = models.FileField(  # Изменено на FileField
+        _('Изображение'),
+        upload_to='products/',
+        validators=[
+            validate_image_extension,
+            validate_image_size,
+            validate_svg_content
+        ]
     )
     is_main = models.BooleanField(
         _('Главное изображение'),
@@ -113,19 +135,13 @@ class ProductImage(models.Model):
         default=0
     )
 
-    class Meta:
-        verbose_name = _('Изображение продукта')
-        verbose_name_plural = _('Изображения продуктов')
-        ordering = ['order']
-
-    def __str__(self):
-        return f"Изображение для {self.product.name}"
-
-    def save(self, *args, **kwargs):
-        # При сохранении главного изображения сбрасываем флаг у других
-        if self.is_main:
-            ProductImage.objects.filter(product=self.product).exclude(id=self.id).update(is_main=False)
-        super().save(*args, **kwargs)
+    def image_preview(self):
+        if self.image:
+            if self.image.name.endswith('.svg'):
+                return mark_safe(f'<img src="{self.image.url}" height="100" />')
+            return mark_safe(f'<img src="{self.image.url}" height="100" />')
+        return _("Нет изображения")
+    image_preview.short_description = _("Превью")
 
 
 class Order(models.Model):

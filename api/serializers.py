@@ -22,25 +22,33 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    is_svg = serializers.SerializerMethodField()
+
     class Meta:
         model = Category
-        fields = ['id', 'name', 'image']
+        fields = ['id', 'name', 'image', 'is_svg']
+
+    @staticmethod
+    def get_is_svg(obj):
+        return obj.image.name.endswith('.svg') if obj.image else False
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()
+    is_svg = serializers.SerializerMethodField()
 
     class Meta:
         model = ProductImage
-        fields = ['id', 'image_url', 'is_main', 'order', 'product']
-        extra_kwargs = {
-            'product': {'required': True}
-        }
+        fields = ['id', 'image_url', 'is_svg', 'is_main', 'order', 'product']
 
     def get_image_url(self, obj):
         if obj.image:
             return self.context['request'].build_absolute_uri(obj.image.url)
         return None
+
+    @staticmethod
+    def get_is_svg(obj):
+        return obj.image.name.endswith('.svg') if obj.image else False
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -49,27 +57,13 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = [
-            'id',
-            'category',
-            'name',
-            'size',
-            'description',
-            'quantity',
-            'brand',
-            'thread_connection',
-            'thread_connection_2',
-            'armament',
-            'seal',
-            'iadc',
-            'main_image',
-            'images'
-        ]
+        fields = '__all__'
 
-    def get_main_image(self, obj):
+    @staticmethod
+    def get_main_image(obj):
         main_image = obj.images.filter(is_main=True).first()
         if main_image:
-            return self.context['request'].build_absolute_uri(main_image.image.url)
+            return main_image.image.url
         return None
 
 
