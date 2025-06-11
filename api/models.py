@@ -77,6 +77,9 @@ class Category(models.Model):
 
     image_preview.short_description = _("Превью")
 
+    def __str__(self):
+        return self.name
+
 
 class Product(models.Model):
     category = models.ForeignKey(
@@ -142,6 +145,9 @@ class ProductImage(models.Model):
             return mark_safe(f'<img src="{self.image.url}" height="100" />')
         return _("Нет изображения")
     image_preview.short_description = _("Превью")
+
+    def __str__(self):
+        return f"Изображение #{self.id} для {self.product.name if self.product else '?'}"
 
 
 class Order(models.Model):

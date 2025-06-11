@@ -3,6 +3,7 @@ from rest_framework import viewsets, filters,  mixins, permissions
 from django.conf import settings
 from rest_framework.parsers import MultiPartParser, FormParser
 
+from .permissions import IsSuperUserOrReadOnly
 from .models import ContactMessage, Employee, Category, Product, Order, SaleItemImage, SaleItem, ProductImage
 from .serializers import ContactMessageSerializer, EmployeeSerializer, CategorySerializer, ProductSerializer, \
     OrderSerializer, SaleItemImageSerializer, SaleItemSerializer, ProductImageSerializer
@@ -33,16 +34,19 @@ class ContactMessageViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
 class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
+    permission_classes = [IsSuperUserOrReadOnly]
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = [IsSuperUserOrReadOnly]
 
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.prefetch_related('images').all()
     serializer_class = ProductSerializer
+    permission_classes = [IsSuperUserOrReadOnly]
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -54,6 +58,7 @@ class ProductImageViewSet(viewsets.ModelViewSet):
     serializer_class = ProductImageSerializer
     parser_classes = (MultiPartParser, FormParser)
     queryset = ProductImage.objects.all()
+    permission_classes = [IsSuperUserOrReadOnly]
 
     def get_queryset(self):
         """Фильтрация по product_id"""
@@ -89,6 +94,7 @@ class OrderViewSet(viewsets.ModelViewSet):
 class SaleItemViewSet(viewsets.ModelViewSet):
     queryset = SaleItem.objects.prefetch_related('images').all()
     serializer_class = SaleItemSerializer
+    permission_classes = [IsSuperUserOrReadOnly]
     lookup_field = 'slug'
 
     def get_queryset(self):
@@ -101,6 +107,7 @@ class SaleItemViewSet(viewsets.ModelViewSet):
 class SaleItemImageViewSet(viewsets.ModelViewSet):
     serializer_class = SaleItemImageSerializer
     queryset = SaleItemImage.objects.all()
+    permission_classes = [IsSuperUserOrReadOnly]
 
     def get_queryset(self):
         sale_item_id = self.request.query_params.get('sale_item')
