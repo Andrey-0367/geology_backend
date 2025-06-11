@@ -116,7 +116,7 @@ class ProductImage(models.Model):
         on_delete=models.CASCADE,
         verbose_name=_('Продукт')
     )
-    image = models.FileField(  # Изменено на FileField
+    image = models.FileField(
         _('Изображение'),
         upload_to='products/',
         validators=[

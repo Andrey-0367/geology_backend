@@ -51,22 +51,22 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['name']
-    search_fields = ['name']
+    list_display = ['name', 'image_preview']
+    readonly_fields = ['image_preview']
+
+    def image_preview(self, obj):
+        return obj.image_preview()
+    image_preview.short_description = "Превью"
 
 
 @admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
     list_display = ['id', 'product', 'image_preview', 'is_main', 'order']
     list_editable = ['is_main', 'order']
-    list_filter = ['product', 'is_main']
-    search_fields = ['product__name']
     readonly_fields = ['image_preview']
 
     def image_preview(self, obj):
-        if obj.image:
-            return mark_safe(f'<img src="{obj.image.url}" height="100" />')
-        return "Нет изображения"
+        return obj.image_preview()
     image_preview.short_description = "Превью"
 
 
