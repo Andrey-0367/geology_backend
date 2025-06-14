@@ -1,4 +1,5 @@
 from django.core.mail import send_mail
+from requests import Response
 from rest_framework import viewsets, filters,  mixins, permissions
 from django.conf import settings
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -6,7 +7,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from .permissions import IsSuperUserOrReadOnly
 from .models import ContactMessage, Employee, Category, Product, Order, SaleItemImage, SaleItem, ProductImage
 from .serializers import ContactMessageSerializer, EmployeeSerializer, CategorySerializer, ProductSerializer, \
-    OrderSerializer, SaleItemImageSerializer, SaleItemSerializer, ProductImageSerializer
+    OrderSerializer, SaleItemImageSerializer, SaleItemSerializer, ProductImageSerializer, CategoryProductsSerializer
 
 
 class ContactMessageViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
@@ -40,18 +41,36 @@ class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsSuperUserOrReadOnly]
+
+    def get_serializer_context(self):
+        return {'request': self.request}
+
+    @action(detail=True, methods=['get'])
+    def products(self, request, pk=None):
+        category = self.get_object()
+        products = Product.objects.filter(category=category).prefetch_related('images')
+        serializer = ProductSerializer(products, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = CategoryProductsSerializer(instance, context={'request': request})
+        return Response(serializer.data)
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.prefetch_related('images').all()
+    queryset = Product.objects.all().prefetch_related('images')
     serializer_class = ProductSerializer
-    permission_classes = [IsSuperUserOrReadOnly]
 
     def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['request'] = self.request
-        return context
+        return {'request': self.request}
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        category_id = self.request.query_params.get('category')
+        if category_id:
+            queryset = queryset.filter(category_id=category_id)
+        return queryset
 
 
 class ProductImageViewSet(viewsets.ModelViewSet):

@@ -22,14 +22,19 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
     is_svg = serializers.SerializerMethodField()
 
     class Meta:
         model = Category
-        fields = ['id', 'name', 'image', 'is_svg']
+        fields = ['id', 'name', 'image', 'image_url', 'is_svg']
 
-    @staticmethod
-    def get_is_svg(obj):
+    def get_image_url(self, obj):
+        if obj.image:
+            return self.context['request'].build_absolute_uri(obj.image.url)
+        return None
+
+    def get_is_svg(self, obj):
         return obj.image.name.endswith('.svg') if obj.image else False
 
 
@@ -46,25 +51,60 @@ class ProductImageSerializer(serializers.ModelSerializer):
             return self.context['request'].build_absolute_uri(obj.image.url)
         return None
 
-    @staticmethod
-    def get_is_svg(obj):
+    def get_is_svg(self, obj):
         return obj.image.name.endswith('.svg') if obj.image else False
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    main_image = serializers.SerializerMethodField()
     images = ProductImageSerializer(many=True, read_only=True)
+    main_image = serializers.SerializerMethodField()
+    image_urls = serializers.SerializerMethodField()  # Для всех URL изображений
 
     class Meta:
         model = Product
-        fields = '__all__'
+        fields = [
+            'id', 'name', 'size', 'description', 'quantity',
+            'brand', 'thread_connection', 'thread_connection_2',
+            'armament', 'seal', 'iadc', 'category',
+            'images', 'main_image', 'image_urls'
+        ]
 
-    @staticmethod
-    def get_main_image(obj):
+    def get_main_image(self, obj):
+        """Возвращает URL главного изображения или первого изображения"""
         main_image = obj.images.filter(is_main=True).first()
         if main_image:
-            return main_image.image.url
+            return self.context['request'].build_absolute_uri(main_image.image.url)
+
+        first_image = obj.images.first()
+        if first_image:
+            return self.context['request'].build_absolute_uri(first_image.image.url)
+
         return None
+
+    def get_image_urls(self, obj):
+        """Возвращает список всех URL изображений продукта"""
+        return [
+            self.context['request'].build_absolute_uri(img.image.url)
+            for img in obj.images.all()
+        ]
+
+
+class CategoryProductsSerializer(serializers.ModelSerializer):
+    products = ProductSerializer(many=True, read_only=True)
+    image_url = serializers.SerializerMethodField()
+    is_svg = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'image', 'image_url', 'is_svg', 'products']
+
+    def get_image_url(self, obj):
+        if obj.image:
+            return self.context['request'].build_absolute_uri(obj.image.url)
+        return None
+
+    def get_is_svg(self, obj):
+        return obj.image.name.endswith('.svg') if obj.image else False
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
