@@ -39,12 +39,12 @@ class ProductImageInline(admin.TabularInline):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ['name', 'size', 'category', 'quantity', 'price', 'display_price']
-    list_filter = ['category']
-    search_fields = ['name', 'description']
+    list_filter = ['category', 'price']
+    search_fields = ['name', 'description', 'price']
     inlines = [ProductImageInline]
     fieldsets = (
         (None, {
-            'fields': ('category', 'name', 'size', 'description', 'quantity')
+            'fields': ('category', 'name', 'size', 'description', 'quantity', 'price')
         }),
         (_('Дополнительные характеристики'), {
             'fields': ('brand', 'thread_connection', 'thread_connection_2', 'armament', 'seal', 'iadc'),
