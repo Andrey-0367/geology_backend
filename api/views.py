@@ -1,8 +1,9 @@
 from django.core.mail import send_mail
-from requests import Response
+
 from rest_framework import viewsets, filters,  mixins, permissions
 from django.conf import settings
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
 
 from .permissions import IsSuperUserOrReadOnly
 from .models import ContactMessage, Employee, Category, Product, Order, SaleItemImage, SaleItem, ProductImage
