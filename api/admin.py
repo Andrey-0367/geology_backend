@@ -52,6 +52,12 @@ class ProductAdmin(admin.ModelAdmin):
         }),
     )
 
+    def display_price(self, obj):
+        return obj.display_price()
+
+    display_price.short_description = _('Цена')
+    display_price.admin_order_field = 'price'
+
     class Meta:
         verbose_name = _('Продукт')
         verbose_name_plural = _('Продукты')

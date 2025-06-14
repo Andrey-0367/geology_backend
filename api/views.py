@@ -96,7 +96,6 @@ class ProductImageViewSet(viewsets.ModelViewSet):
 
 class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     http_method_names = ['post']  # Разрешаем только создание заказа
 
     def get_queryset(self):

@@ -119,6 +119,14 @@ class Product(models.Model):
     def __str__(self):
         return f"{self.name} ({self.size})"
 
+    def display_price(self):
+        """Форматированное отображение цены или 'Цена по запросу'"""
+        if self.price is not None:
+
+            formatted_price = format(self.price, ',.2f').replace(',', ' ')
+            return f"{formatted_price} руб."
+        return _("Цена по запросу")
+
 
 class ProductImage(models.Model):
     product = models.ForeignKey(
