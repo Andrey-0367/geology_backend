@@ -58,7 +58,8 @@ class ProductImageSerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     images = ProductImageSerializer(many=True, read_only=True)
     main_image = serializers.SerializerMethodField()
-    image_urls = serializers.SerializerMethodField()  # Для всех URL изображений
+    image_urls = serializers.SerializerMethodField()
+    display_price = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -66,7 +67,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'id', 'name', 'size', 'description', 'quantity',
             'brand', 'thread_connection', 'thread_connection_2',
             'armament', 'seal', 'iadc', 'category',
-            'images', 'main_image', 'image_urls'
+            'images', 'main_image', 'image_urls',  'price', 'display_price'
         ]
 
     def get_main_image(self, obj):
@@ -87,6 +88,9 @@ class ProductSerializer(serializers.ModelSerializer):
             self.context['request'].build_absolute_uri(img.image.url)
             for img in obj.images.all()
         ]
+
+    def get_display_price(self, obj):
+        return obj.display_price()
 
 
 class CategoryProductsSerializer(serializers.ModelSerializer):

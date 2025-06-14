@@ -95,6 +95,14 @@ class Product(models.Model):
         _('Количество'),
         default=0
     )
+    price = models.DecimalField(
+        _('Цена'),
+        max_digits=10,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        help_text=_('Цена в рублях. Оставьте пустым для "Цены по запросу"')
+    )
 
     # Необязательные поля
     brand = models.CharField(_('Марка'), max_length=100, blank=True, null=True)
