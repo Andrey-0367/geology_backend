@@ -67,26 +67,32 @@ class ProductSerializer(serializers.ModelSerializer):
             'id', 'name', 'size', 'description', 'quantity',
             'brand', 'thread_connection', 'thread_connection_2',
             'armament', 'seal', 'iadc', 'category',
-            'images', 'main_image', 'image_urls',  'price', 'display_price'
+            'images', 'main_image', 'image_urls', 'price', 'display_price'
         ]
 
     def get_main_image(self, obj):
         """Возвращает URL главного изображения или первого изображения"""
+        if not hasattr(obj, 'images'):
+            return None
+
         main_image = obj.images.filter(is_main=True).first()
-        if main_image:
+        if main_image and main_image.image:
             return self.context['request'].build_absolute_uri(main_image.image.url)
 
         first_image = obj.images.first()
-        if first_image:
+        if first_image and first_image.image:
             return self.context['request'].build_absolute_uri(first_image.image.url)
 
         return None
 
     def get_image_urls(self, obj):
         """Возвращает список всех URL изображений продукта"""
+        if not hasattr(obj, 'images') or not obj.images.exists():
+            return []
+
         return [
             self.context['request'].build_absolute_uri(img.image.url)
-            for img in obj.images.all()
+            for img in obj.images.all() if img.image
         ]
 
     def get_display_price(self, obj):
