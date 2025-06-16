@@ -37,6 +37,20 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+CORS_ORIGIN_WHITELIST = [
+    'https://geologiya-ru.ru',
+    'https://www.geologiya-ru.ru'
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "https://geologiya-ru.ru",
+    "https://www.geologiya-ru.ru",
+    "https://*.vercel.app"
+]
+
 CORS_ALLOW_ALL_ORIGINS = (
     os.environ.get('CORS_ALLOW_ALL_ORIGINS', 'True') == 'True'
 )
