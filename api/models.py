@@ -89,7 +89,7 @@ class Product(models.Model):
         verbose_name=_('Категория')
     )
     name = models.CharField(_('Название'), max_length=255)
-    size = models.CharField(_('Размер'), max_length=100)
+    size = models.CharField(_('Размер'), max_length=100, null=True, blank=True)
     description = models.TextField(_('Описание'))
     quantity = models.PositiveIntegerField(
         _('Количество'),
