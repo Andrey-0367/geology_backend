@@ -67,7 +67,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'id', 'name', 'size', 'description', 'quantity',
             'brand', 'thread_connection', 'thread_connection_2',
             'armament', 'seal', 'iadc', 'category',
-            'images', 'main_image', 'image_urls', 'price', 'display_price'
+            'images', 'main_image', 'image_urls',  'price', 'display_price'
         ]
 
     def get_main_image(self, obj):
@@ -153,9 +153,9 @@ class OrderSerializer(serializers.ModelSerializer):
 class SaleItemImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = SaleItemImage
-        fields = ['id', 'image', 'is_main', 'order', 'sale_item']
+        fields = ['id', 'image', 'is_main', 'order', 'sale_item']  # Оставляем sale_item
         extra_kwargs = {
-            'sale_item': {'required': True}
+            'sale_item': {'required': True}  # Явно указываем что поле обязательно
         }
 
 
@@ -177,3 +177,5 @@ class SaleItemSerializer(serializers.ModelSerializer):
         if main_image:
             return main_image.image.url
         return None
+
+

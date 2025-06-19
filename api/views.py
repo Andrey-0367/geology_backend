@@ -1,15 +1,15 @@
 from django.core.mail import send_mail
-
 from rest_framework import viewsets, mixins, permissions
 from django.conf import settings
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.decorators import action
-
 from .permissions import IsSuperUserOrReadOnly
+
+from rest_framework import permissions
 from .models import ContactMessage, Employee, Category, Product, Order, SaleItemImage, SaleItem, ProductImage
 from .serializers import ContactMessageSerializer, EmployeeSerializer, CategorySerializer, ProductSerializer, \
-    OrderSerializer, SaleItemImageSerializer, SaleItemSerializer, ProductImageSerializer, CategoryProductsSerializer
+    OrderSerializer, SaleItemImageSerializer, SaleItemSerializer, ProductImageSerializer
 
 
 class ContactMessageViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
@@ -35,9 +35,9 @@ class ContactMessageViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
 
 class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [IsSuperUserOrReadOnly]
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
-    permission_classes = [IsSuperUserOrReadOnly]
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -96,6 +96,7 @@ class ProductImageViewSet(viewsets.ModelViewSet):
 
 class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     http_method_names = ['post']  # Разрешаем только создание заказа
 
     def get_queryset(self):
@@ -112,9 +113,9 @@ class OrderViewSet(viewsets.ModelViewSet):
 
 
 class SaleItemViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsSuperUserOrReadOnly]
     queryset = SaleItem.objects.prefetch_related('images').all()
     serializer_class = SaleItemSerializer
-    permission_classes = [IsSuperUserOrReadOnly]
     lookup_field = 'slug'
 
     def get_queryset(self):
