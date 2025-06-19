@@ -8,11 +8,12 @@ SECRET_KEY = os.environ.get('SECRET_KEY', default='the-best-secret-key')
 
 
 ALLOWED_HOSTS = [
+    'geologiya-ru.ru',
+    'www.geologiya-ru.ru',
     '83.166.245.78',
     'localhost',
     'backend'
 ]
-
 
 DEBUG = False
 
