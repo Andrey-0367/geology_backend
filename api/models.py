@@ -80,6 +80,9 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        ordering = ['id']
+
 
 class Product(models.Model):
     category = models.ForeignKey(
@@ -165,6 +168,9 @@ class ProductImage(models.Model):
 
     def __str__(self):
         return f"Изображение #{self.id} для {self.product.name if self.product else '?'}"
+
+    class Meta:
+        ordering = ['id']
 
 
 class Order(models.Model):
