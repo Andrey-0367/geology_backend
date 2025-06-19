@@ -17,7 +17,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Сборка статики
-RUN python manage.py collectstatic --noinput
+RUN python manage.py makemigrations && \
+    python manage.py collectstatic --noinput
 
 # Запуск приложения
 CMD ["sh", "-c", "python manage.py migrate && gunicorn geology.wsgi:application --bind 0.0.0.0:8000"]
