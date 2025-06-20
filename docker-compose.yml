@@ -9,12 +9,14 @@ services:
     restart: always
 
   backend:
-    image: docker.io/pochek/geology_backend:latest  # Используем готовый образ
+    image: docker.io/pochek/geology_backend:latest
     env_file: .env.production
     command: >
       sh -c "python manage.py migrate &&
-             python manage.py collectstatic --noinput &&
+             python manage.py collectstatic --noinput --clear &&
              gunicorn geology.wsgi:application --bind 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
     volumes:
       - static_volume:/app/collected_static
       - media_volume:/app/media

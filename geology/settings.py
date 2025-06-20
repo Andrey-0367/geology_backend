@@ -6,6 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('SECRET_KEY', default='the-best-secret-key')
 
+DEBUG = False
 
 ALLOWED_HOSTS = [
     'geologiya-ru.ru',
@@ -14,9 +15,6 @@ ALLOWED_HOSTS = [
     'localhost',
     'backend'
 ]
-
-DEBUG = False
-
 
 # Application definition
 INSTALLED_APPS = [
@@ -43,19 +41,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-CORS_ORIGIN_WHITELIST = [
-    'https://geologiya-ru.ru',
-    'https://www.geologiya-ru.ru'
-]
-
-CORS_ALLOWED_ORIGINS = [
-    "https://geologiya-ru.ru",
-    "https://www.geologiya-ru.ru",
-    "https://*.vercel.app"
-]
+INTERNAL_IPS = ALLOWED_HOSTS
 
 CORS_ALLOW_ALL_ORIGINS = (
     os.environ.get('CORS_ALLOW_ALL_ORIGINS', 'True') == 'True'
@@ -160,7 +146,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'collected_static'
+STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -180,4 +166,11 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
 
+CSRF_TRUSTED_ORIGINS = [
+    'http://83.166.245.78',
+    'http://geologiya-ru.ru'
+]
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'http')
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
