@@ -1,12 +1,15 @@
-from django.conf import settings
 from django.core.mail import send_mail
-from rest_framework import permissions, viewsets, mixins
+from rest_framework import viewsets, mixins
+from django.conf import settings
 from rest_framework.parsers import MultiPartParser, FormParser
-from django.db.models import Prefetch
-from .models import ContactMessage, Employee, Category, Product, Order, SaleItemImage, SaleItem, ProductImage
+from rest_framework.response import Response
+from rest_framework.decorators import action
 from .permissions import IsSuperUserOrReadOnly
-from .serializers import ContactMessageSerializer, EmployeeSerializer, ProductImageSerializer, SaleItemSerializer, \
-    OrderSerializer, SaleItemImageSerializer, CategorySerializer, ProductSerializer
+
+from rest_framework import permissions
+from .models import ContactMessage, Employee, Category, Product, Order, SaleItemImage, SaleItem, ProductImage
+from .serializers import ContactMessageSerializer, EmployeeSerializer, CategorySerializer, ProductSerializer, \
+    OrderSerializer, SaleItemImageSerializer, SaleItemSerializer, ProductImageSerializer, CategoryProductsSerializer
 
 
 class ContactMessageViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
@@ -41,20 +44,32 @@ class CategoryViewSet(viewsets.ModelViewSet):
     def get_serializer_context(self):
         return {'request': self.request}
 
+    @action(detail=True, methods=['get'])
+    def products(self, request, pk=None):
+        category = self.get_object()
+        products = Product.objects.filter(category=category).prefetch_related('images')
+        serializer = ProductSerializer(products, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = CategoryProductsSerializer(instance, context={'request': request})
+        return Response(serializer.data)
+
 
 class ProductViewSet(viewsets.ModelViewSet):
+    queryset = Product.objects.all().prefetch_related('images')
     serializer_class = ProductSerializer
-
-    def get_queryset(self):
-        return Product.objects.prefetch_related(
-            Prefetch('images',
-                queryset=ProductImage.objects.order_by('order'),
-                to_attr='prefetched_images'
-            )
-        ).select_related('category').order_by('id')
 
     def get_serializer_context(self):
         return {'request': self.request}
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        category_id = self.request.query_params.get('category')
+        if category_id:
+            queryset = queryset.filter(category_id=category_id)
+        return queryset
 
 
 class ProductImageViewSet(viewsets.ModelViewSet):
@@ -66,8 +81,8 @@ class ProductImageViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         product_id = self.request.query_params.get('product')
         if product_id:
-            return ProductImage.objects.filter(product_id=product_id).order_by('order')
-        return super().get_queryset().order_by('order')
+            return ProductImage.objects.filter(product_id=product_id)
+        return super().get_queryset()
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -76,7 +91,6 @@ class ProductImageViewSet(viewsets.ModelViewSet):
 
 
 class OrderViewSet(viewsets.ModelViewSet):
-    queryset = Order.objects.prefetch_related('items').order_by('-created_at')
     serializer_class = OrderSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     http_method_names = ['post']
@@ -96,23 +110,14 @@ class OrderViewSet(viewsets.ModelViewSet):
 
 class SaleItemViewSet(viewsets.ModelViewSet):
     permission_classes = [IsSuperUserOrReadOnly]
+    queryset = SaleItem.objects.prefetch_related('images').all()
     serializer_class = SaleItemSerializer
     lookup_field = 'slug'
 
     def get_queryset(self):
-        queryset = SaleItem.objects.prefetch_related(
-            Prefetch('images',
-                queryset=SaleItemImage.objects.order_by('order'),
-                to_attr='prefetched_images'
-            )
-        ).order_by('-created_at')
-
         if self.action == 'list':
-            return queryset.filter(is_active=True)
-        return queryset
-
-    def get_serializer_context(self):
-        return {'request': self.request}
+            return self.queryset.filter(is_active=True)
+        return self.queryset
 
 
 class SaleItemImageViewSet(viewsets.ModelViewSet):
@@ -123,10 +128,5 @@ class SaleItemImageViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         sale_item_id = self.request.query_params.get('sale_item')
         if sale_item_id:
-            return SaleItemImage.objects.filter(sale_item_id=sale_item_id).order_by('order')
-        return super().get_queryset().order_by('order')
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['request'] = self.request
-        return context
+            return SaleItemImage.objects.filter(sale_item_id=sale_item_id)
+        return super().get_queryset()
