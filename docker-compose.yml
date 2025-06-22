@@ -23,7 +23,8 @@ services:
     depends_on:
       - db
     restart: always
-
+    networks:
+      - webnet
   nginx:
     image: docker.io/pochek/geology_nginx:latest
     ports:
@@ -38,11 +39,13 @@ services:
     depends_on:
       - backend
     restart: always
-
+    networks:
+      - webnet
 volumes:
   pg_data:
   static_volume:
   media_volume:
 
-
+networks:
+  webnet:
 
