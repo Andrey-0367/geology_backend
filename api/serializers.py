@@ -2,55 +2,81 @@ from rest_framework import serializers
 from .models import ContactMessage, Employee, Category, Product, OrderItem, Order, SaleItem, SaleItemImage, ProductImage
 
 
+class BaseImageSerializer:
+    image_url = serializers.SerializerMethodField()
+
+    def get_image_url(self, obj):
+        request = self.context.get('request')
+        image_field = getattr(obj, 'photo', None) or getattr(obj, 'image', None)
+
+        if image_field and request:
+            try:
+                return request.build_absolute_uri(image_field.url)
+            except ValueError:
+                return None
+        return None
+
+
 class ContactMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactMessage
         fields = '__all__'
 
 
-class EmployeeSerializer(serializers.ModelSerializer):
-    photo_url = serializers.SerializerMethodField()
-
+class EmployeeSerializer(BaseImageSerializer, serializers.ModelSerializer):
     class Meta:
         model = Employee
         fields = '__all__'
 
-    def get_photo_url(self, obj):
-        if obj.photo:
-            return self.context['request'].build_absolute_uri(obj.photo.url)
-        return None
 
-
-class CategorySerializer(serializers.ModelSerializer):
+class CategorySerializer(BaseImageSerializer, serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'image_url']
 
 
-class ProductImageSerializer(serializers.ModelSerializer):
+class ProductImageSerializer(BaseImageSerializer, serializers.ModelSerializer):
     class Meta:
         model = ProductImage
-        fields = ['id', 'image', 'is_main', 'order']
+        fields = ['id', 'image_url', 'is_main', 'order', 'product']
 
 
-class ProductSerializer(serializers.ModelSerializer):
+class ProductSerializer(BaseImageSerializer, serializers.ModelSerializer):
     images = ProductImageSerializer(many=True, read_only=True)
-    category_id = serializers.IntegerField(source='category.id', read_only=True)
+    main_image = serializers.SerializerMethodField()
+    category = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Product
         fields = [
             'id', 'name', 'size', 'description', 'quantity',
-            'price', 'category_id', 'images'
+            'brand', 'thread_connection', 'thread_connection_2',
+            'armament', 'seal', 'iadc', 'category',
+            'images', 'main_image', 'price'
         ]
 
+    def get_main_image(self, obj):
+        request = self.context.get('request')
+        if not request:
+            return None
 
-class CategoryProductsSerializer(serializers.ModelSerializer):
+        images = getattr(obj, 'prefetched_images', None) or obj.images.all()
+
+        main_image = next((img for img in images if img.is_main), None)
+        if not main_image and images:
+            main_image = images[0]
+
+        if main_image:
+            return self.get_image_url(main_image)
+
+        return None
+
+
+class CategoryProductsSerializer(CategorySerializer):
     products = ProductSerializer(many=True, read_only=True)
 
-    class Meta:
-        model = Category
-        fields = ['id', 'name', 'products']
+    class Meta(CategorySerializer.Meta):
+        fields = CategorySerializer.Meta.fields + ['products']
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -86,32 +112,30 @@ class OrderSerializer(serializers.ModelSerializer):
         return order
 
 
-class SaleItemImageSerializer(serializers.ModelSerializer):
+class SaleItemImageSerializer(BaseImageSerializer, serializers.ModelSerializer):
     class Meta:
         model = SaleItemImage
-        fields = ['id', 'image', 'is_main', 'order', 'sale_item']  # Оставляем sale_item
-        extra_kwargs = {
-            'sale_item': {'required': True}  # Явно указываем что поле обязательно
-        }
+        fields = ['id', 'image_url', 'is_main', 'order', 'sale_item']
+        extra_kwargs = {'sale_item': {'required': True}}
 
 
-class SaleItemSerializer(serializers.ModelSerializer):
+class SaleItemSerializer(BaseImageSerializer, serializers.ModelSerializer):
     main_image = serializers.SerializerMethodField()
+    images = SaleItemImageSerializer(many=True, read_only=True)
 
     class Meta:
         model = SaleItem
         fields = [
             'id', 'title', 'slug', 'description',
             'old_price', 'new_price', 'is_active',
-            'created_at', 'main_image'
+            'created_at', 'main_image', 'images'
         ]
         read_only_fields = ['slug', 'created_at']
 
-    @staticmethod
-    def get_main_image(obj):
+    def get_main_image(self, obj):
         main_image = obj.images.filter(is_main=True).first()
         if main_image:
-            return main_image.image.url
+            return self.get_image_url(main_image)
         return None
 
 
