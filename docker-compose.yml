@@ -7,7 +7,8 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
     restart: always
-
+    networks:
+      - webnet
   backend:
     image: docker.io/pochek/geology_backend:latest  # Используем готовый образ
     env_file: .env.production
