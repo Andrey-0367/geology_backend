@@ -60,13 +60,14 @@ class ProductSerializer(serializers.ModelSerializer):
     main_image = serializers.SerializerMethodField()
     image_urls = serializers.SerializerMethodField()
     display_price = serializers.SerializerMethodField()
+    category_id = serializers.IntegerField(source='category.id', read_only=True)
 
     class Meta:
         model = Product
         fields = [
             'id', 'name', 'size', 'description', 'quantity',
             'brand', 'thread_connection', 'thread_connection_2',
-            'armament', 'seal', 'iadc', 'category',
+            'armament', 'seal', 'iadc', 'category_id',
             'images', 'main_image', 'image_urls',  'price', 'display_price'
         ]
 
