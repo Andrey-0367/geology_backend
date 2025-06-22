@@ -11,10 +11,8 @@ DEBUG = False
 ALLOWED_HOSTS = [
     'geologiya-ru.ru',
     'www.geologiya-ru.ru',
-    '83.166.245.78',
-    'localhost',
-    'backend'
 ]
+
 
 # Application definition
 INSTALLED_APPS = [
@@ -68,6 +66,7 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
 ]
+
 
 ROOT_URLCONF = 'geology.urls'
 
@@ -166,11 +165,13 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
 
-CSRF_TRUSTED_ORIGINS = [
-    'http://83.166.245.78',
-    'http://geologiya-ru.ru'
-]
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'http')
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+CSRF_TRUSTED_ORIGINS = [
+    'https://geologiya-ru.ru',
+    'https://www.geologiya-ru.ru'
+]
+CSRF_COOKIE_DOMAIN = '.geologiya-ru.ru'
+
