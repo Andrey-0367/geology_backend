@@ -1,3 +1,4 @@
+from decimal import Decimal
 import os
 
 from django.db import models
@@ -234,13 +235,13 @@ class SaleItem(models.Model):
         "Старая цена",
         max_digits=10,
         decimal_places=2,
-        validators=[MinValueValidator(0.01)]
+        validators=[MinValueValidator(Decimal('0.01'))]
     )
     new_price = models.DecimalField(
         "Новая цена",
         max_digits=10,
         decimal_places=2,
-        validators=[MinValueValidator(0.01)]
+        validators=[MinValueValidator(Decimal('0.01'))]
     )
     is_active = models.BooleanField("Активный", default=True)
     created_at = models.DateTimeField("Дата создания", auto_now_add=True)

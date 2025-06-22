@@ -38,7 +38,6 @@ class CategorySerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(obj.image.url)
         return None
 
-    @staticmethod
     def get_is_svg(self, obj):
         if obj.image:
             return obj.image.name.endswith('.svg') if obj.image else False
@@ -60,7 +59,6 @@ class ProductImageSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(obj.image.url)
         return None
 
-    @staticmethod
     def get_is_svg(self, obj):
         if obj.image:
             return obj.image.name.endswith('.svg') if obj.image else False
@@ -112,7 +110,6 @@ class ProductSerializer(serializers.ModelSerializer):
                     urls.append(request.build_absolute_uri(img.image.url))
         return urls
 
-    @staticmethod
     def get_display_price(self, obj):
         return obj.display_price()
 
@@ -133,7 +130,6 @@ class CategoryProductsSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(obj.image.url)
         return None
 
-    @staticmethod
     def get_is_svg(self, obj):
         if obj.image:
             return obj.image.name.endswith('.svg') if obj.image else False
@@ -195,7 +191,6 @@ class SaleItemSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['slug', 'created_at']
 
-    @staticmethod
     def get_main_image(self, obj):
         main_image = obj.images.filter(is_main=True).first()
         if main_image and main_image.image:
