@@ -1,14 +1,14 @@
+from django.conf import settings
 from django.core.mail import send_mail
 from django.http import Http404
-from rest_framework import viewsets, mixins, permissions, status
-from django.conf import settings
+from rest_framework import permissions
+from rest_framework import viewsets, mixins, status
+from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
-from rest_framework.decorators import action
-from .permissions import IsSuperUserOrReadOnly
 
-from rest_framework import permissions
 from .models import ContactMessage, Employee, Category, Product, Order, SaleItemImage, SaleItem, ProductImage
+from .permissions import IsSuperUserOrReadOnly
 from .serializers import ContactMessageSerializer, EmployeeSerializer, CategorySerializer, ProductSerializer, \
     OrderSerializer, SaleItemImageSerializer, SaleItemSerializer, ProductImageSerializer, CategoryProductsSerializer
 
@@ -45,46 +45,34 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
-    def get_serializer_context(self):
-        return {'request': self.request}
-
     @action(detail=True, methods=['get'])
     def products(self, request, pk=None):
-        category = self.get_object()
-        products = Product.objects.filter(category=category).prefetch_related('images')
-        serializer = ProductSerializer(products, many=True, context={'request': request})
-        return Response(serializer.data)
+        try:
+            category = Category.objects.get(pk=pk)
+            products = Product.objects.filter(category=category)
+            serializer = ProductSerializer(products, many=True, context={'request': request})
+            return Response(serializer.data)
+        except Category.DoesNotExist:
+            return Response({"detail": "Category not found"}, status=404)
 
     def retrieve(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
+            serializer = CategoryProductsSerializer(instance, context={'request': request})
+            return Response(serializer.data)
         except Category.DoesNotExist:
-            return Response(
-                {"detail": "Категория не найдена"},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        serializer = CategoryProductsSerializer(instance, context={'request': request})
-        return Response(serializer.data)
+            return Response({"detail": "Category not found"}, status=404)
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all().prefetch_related('images')
+    queryset = Product.objects.all()
     serializer_class = ProductSerializer
-
-    def get_serializer_context(self):
-        return {'request': self.request}
 
     def get_queryset(self):
         queryset = super().get_queryset()
         category_id = self.request.query_params.get('category')
-
         if category_id:
-            if not Category.objects.filter(id=category_id).exists():
-                raise Http404(f"Категория с ID {category_id} не существует")
-
             queryset = queryset.filter(category_id=category_id)
-
         return queryset
 
 

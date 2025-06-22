@@ -22,117 +22,35 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    image_url = serializers.SerializerMethodField()
-    is_svg = serializers.SerializerMethodField()
-
     class Meta:
         model = Category
-        fields = ['id', 'name', 'image', 'image_url', 'is_svg']
-
-    def get_image_url(self, obj):
-        if obj.image:
-            return self.context['request'].build_absolute_uri(obj.image.url)
-        return None
-
-    def get_is_svg(self, obj):
-        return obj.image.name.endswith('.svg') if obj.image else False
+        fields = ['id', 'name']
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
-    image_url = serializers.SerializerMethodField()
-    is_svg = serializers.SerializerMethodField()
-
     class Meta:
         model = ProductImage
-        fields = ['id', 'image_url', 'is_svg', 'is_main', 'order', 'product']
-
-    def get_image_url(self, obj):
-        if obj.image:
-            return self.context['request'].build_absolute_uri(obj.image.url)
-        return None
-
-    def get_is_svg(self, obj):
-        return obj.image.name.endswith('.svg') if obj.image else False
+        fields = ['id', 'image', 'is_main', 'order']
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    images = serializers.SerializerMethodField()  # Изменено!
-    main_image = serializers.SerializerMethodField()
-    display_price = serializers.SerializerMethodField()
+    images = ProductImageSerializer(many=True, read_only=True)
     category_id = serializers.IntegerField(source='category.id', read_only=True)
 
     class Meta:
         model = Product
         fields = [
             'id', 'name', 'size', 'description', 'quantity',
-            'brand', 'thread_connection', 'thread_connection_2',
-            'armament', 'seal', 'iadc',
-            'images', 'main_image', 'price', 'display_price',
-            'category_id'
+            'price', 'category_id', 'images'
         ]
-
-    def get_images(self, obj):  # Новый метод!
-        images = obj.images.all()
-        serializer = ProductImageSerializer(
-            images,
-            many=True,
-            context=self.context
-        )
-        return serializer.data
-
-    def get_image_url(self, obj):
-        if obj.image:
-            try:
-                if obj.image.storage.exists(obj.image.name):
-                    return self.context['request'].build_absolute_uri(obj.image.url)
-                return None
-            except (ValueError, AttributeError):
-                return None
-        return None
-
-    def get_is_svg(self, obj):
-        try:
-            return obj.image.name.endswith('.svg') if obj.image else False
-        except (AttributeError, ValueError):
-            return False
-
-    def get_display_price(self, obj):
-        return obj.display_price()
 
 
 class CategoryProductsSerializer(serializers.ModelSerializer):
-    products = serializers.SerializerMethodField()  # Изменено!
-    image_url = serializers.SerializerMethodField()
-    is_svg = serializers.SerializerMethodField()
+    products = ProductSerializer(many=True, read_only=True)
 
     class Meta:
         model = Category
-        fields = ['id', 'name', 'image', 'image_url', 'is_svg', 'products']
-
-    def get_products(self, obj):
-        products = obj.products.all().prefetch_related('images')
-        serializer = ProductSerializer(
-            products,
-            many=True,
-            context=self.context
-        )
-        return serializer.data
-
-    def get_image_url(self, obj):
-        if obj.image:
-            try:
-                if obj.image.storage.exists(obj.image.name):
-                    return self.context['request'].build_absolute_uri(obj.image.url)
-                return None
-            except (ValueError, AttributeError):
-                return None
-        return None
-
-    def get_is_svg(self, obj):
-        try:
-            return obj.image.name.endswith('.svg') if obj.image else False
-        except (AttributeError, ValueError):
-            return False
+        fields = ['id', 'name', 'products']
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
