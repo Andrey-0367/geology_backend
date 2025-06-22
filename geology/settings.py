@@ -12,6 +12,7 @@ ALLOWED_HOSTS = [
     'geologiya-ru.ru',
     'www.geologiya-ru.ru',
     '127.0.0.1',
+    'backend',
     'localhost',
 ]
 
