@@ -1,19 +1,27 @@
 from rest_framework import serializers
 from .models import ContactMessage, Employee, Category, Product, OrderItem, Order, SaleItem, SaleItemImage, ProductImage
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class BaseImageSerializer:
-    image_url = serializers.SerializerMethodField()
-
-    def get_image_url(self, obj):
+    def get_image_url(self, obj, image_field):
         request = self.context.get('request')
-        image_field = getattr(obj, 'photo', None) or getattr(obj, 'image', None)
+        if not request:
+            return None
 
-        if image_field and request:
-            try:
+        if not image_field:
+            return None
+
+        try:
+            if hasattr(image_field, 'url') and image_field.url:
                 return request.build_absolute_uri(image_field.url)
-            except ValueError:
-                return None
+        except ValueError as e:
+            logger.error(f"File not found: {str(e)}")
+        except Exception as e:
+            logger.exception("Error processing image")
+
         return None
 
 
@@ -23,27 +31,43 @@ class ContactMessageSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class EmployeeSerializer(BaseImageSerializer, serializers.ModelSerializer):
+class EmployeeSerializer(serializers.ModelSerializer):
+    photo_url = serializers.SerializerMethodField()
+
     class Meta:
         model = Employee
         fields = '__all__'
 
+    def get_photo_url(self, obj):
+        return self.get_image_url(obj, obj.photo) if hasattr(self, 'get_image_url') else None
 
-class CategorySerializer(BaseImageSerializer, serializers.ModelSerializer):
+
+class CategorySerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
     class Meta:
         model = Category
         fields = ['id', 'name', 'image_url']
 
+    def get_image_url(self, obj):
+        return self.get_image_url(obj, obj.image) if hasattr(self, 'get_image_url') else None
 
-class ProductImageSerializer(BaseImageSerializer, serializers.ModelSerializer):
+
+class ProductImageSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
     class Meta:
         model = ProductImage
         fields = ['id', 'image_url', 'is_main', 'order', 'product']
 
+    def get_image_url(self, obj):
+        return self.get_image_url(obj, obj.image) if hasattr(self, 'get_image_url') else None
 
-class ProductSerializer(BaseImageSerializer, serializers.ModelSerializer):
+
+class ProductSerializer(serializers.ModelSerializer, BaseImageSerializer):
     images = ProductImageSerializer(many=True, read_only=True)
     main_image = serializers.SerializerMethodField()
+    display_price = serializers.SerializerMethodField()
     category = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
@@ -52,7 +76,7 @@ class ProductSerializer(BaseImageSerializer, serializers.ModelSerializer):
             'id', 'name', 'size', 'description', 'quantity',
             'brand', 'thread_connection', 'thread_connection_2',
             'armament', 'seal', 'iadc', 'category',
-            'images', 'main_image', 'price'
+            'images', 'main_image', 'price', 'display_price'
         ]
 
     def get_main_image(self, obj):
@@ -60,16 +84,28 @@ class ProductSerializer(BaseImageSerializer, serializers.ModelSerializer):
         if not request:
             return None
 
-        images = getattr(obj, 'prefetched_images', None) or obj.images.all()
+        try:
+            # Используем prefetched images если доступно
+            images = getattr(obj, 'images', [])
+            if not images:
+                images = list(obj.images.all())
 
-        main_image = next((img for img in images if img.is_main), None)
-        if not main_image and images:
-            main_image = images[0]
+            for img in images:
+                if img.is_main and img.image:
+                    return self.get_image_url(img, img.image)
 
-        if main_image:
-            return self.get_image_url(main_image)
+            # Если нет главного, берём первое изображение
+            for img in images:
+                if img.image:
+                    return self.get_image_url(img, img.image)
+
+        except Exception as e:
+            logger.exception(f"Error getting main image for product {obj.id}")
 
         return None
+
+    def get_display_price(self, obj):
+        return obj.display_price()
 
 
 class CategoryProductsSerializer(CategorySerializer):
@@ -99,27 +135,33 @@ class OrderSerializer(serializers.ModelSerializer):
 
         for item_data in items_data:
             product = item_data['product']
+            price = product.price if product.price else 0
             OrderItem.objects.create(
                 order=order,
                 product=product,
                 quantity=item_data['quantity'],
-                price=product.price
+                price=price
             )
-            total += product.price * item_data['quantity']
+            total += price * item_data['quantity']
 
         order.total = total
         order.save()
         return order
 
 
-class SaleItemImageSerializer(BaseImageSerializer, serializers.ModelSerializer):
+class SaleItemImageSerializer(serializers.ModelSerializer, BaseImageSerializer):
+    image_url = serializers.SerializerMethodField()
+
     class Meta:
         model = SaleItemImage
         fields = ['id', 'image_url', 'is_main', 'order', 'sale_item']
         extra_kwargs = {'sale_item': {'required': True}}
 
+    def get_image_url(self, obj):
+        return self.get_image_url(obj, obj.image) if hasattr(self, 'get_image_url') else None
 
-class SaleItemSerializer(BaseImageSerializer, serializers.ModelSerializer):
+
+class SaleItemSerializer(serializers.ModelSerializer, BaseImageSerializer):
     main_image = serializers.SerializerMethodField()
     images = SaleItemImageSerializer(many=True, read_only=True)
 
@@ -133,9 +175,23 @@ class SaleItemSerializer(BaseImageSerializer, serializers.ModelSerializer):
         read_only_fields = ['slug', 'created_at']
 
     def get_main_image(self, obj):
-        main_image = obj.images.filter(is_main=True).first()
-        if main_image:
-            return self.get_image_url(main_image)
-        return None
+        try:
+            # Используем prefetched images если доступно
+            images = getattr(obj, 'images', [])
+            if not images:
+                images = list(obj.images.all())
 
+            for img in images:
+                if img.is_main and img.image:
+                    return self.get_image_url(img, img.image)
+
+            # Если нет главного, берём первое изображение
+            for img in images:
+                if img.image:
+                    return self.get_image_url(img, img.image)
+
+        except Exception as e:
+            logger.exception(f"Error getting main image for sale item {obj.id}")
+
+        return None
 
