@@ -1,5 +1,6 @@
 from django.core.mail import send_mail
-from rest_framework import viewsets, mixins, permissions
+from django.http import Http404
+from rest_framework import viewsets, mixins, permissions, status
 from django.conf import settings
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
@@ -9,7 +10,7 @@ from .permissions import IsSuperUserOrReadOnly
 from rest_framework import permissions
 from .models import ContactMessage, Employee, Category, Product, Order, SaleItemImage, SaleItem, ProductImage
 from .serializers import ContactMessageSerializer, EmployeeSerializer, CategorySerializer, ProductSerializer, \
-    OrderSerializer, SaleItemImageSerializer, SaleItemSerializer, ProductImageSerializer
+    OrderSerializer, SaleItemImageSerializer, SaleItemSerializer, ProductImageSerializer, CategoryProductsSerializer
 
 
 class ContactMessageViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
@@ -55,7 +56,14 @@ class CategoryViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
+        try:
+            instance = self.get_object()
+        except Category.DoesNotExist:
+            return Response(
+                {"detail": "Категория не найдена"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
         serializer = CategoryProductsSerializer(instance, context={'request': request})
         return Response(serializer.data)
 
@@ -70,8 +78,13 @@ class ProductViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
         category_id = self.request.query_params.get('category')
+
         if category_id:
+            if not Category.objects.filter(id=category_id).exists():
+                raise Http404(f"Категория с ID {category_id} не существует")
+
             queryset = queryset.filter(category_id=category_id)
+
         return queryset
 
 

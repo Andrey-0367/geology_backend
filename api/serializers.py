@@ -56,9 +56,8 @@ class ProductImageSerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    images = ProductImageSerializer(many=True, read_only=True)
+    images = serializers.SerializerMethodField()  # Изменено!
     main_image = serializers.SerializerMethodField()
-    image_urls = serializers.SerializerMethodField()
     display_price = serializers.SerializerMethodField()
     category_id = serializers.IntegerField(source='category.id', read_only=True)
 
@@ -67,41 +66,42 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'size', 'description', 'quantity',
             'brand', 'thread_connection', 'thread_connection_2',
-            'armament', 'seal', 'iadc', 'category_id',
-            'images', 'main_image', 'image_urls',  'price', 'display_price'
+            'armament', 'seal', 'iadc',
+            'images', 'main_image', 'price', 'display_price',
+            'category_id'
         ]
 
-    def get_main_image(self, obj):
-        """Возвращает URL главного изображения или первого изображения"""
-        if not hasattr(obj, 'images'):
-            return None
+    def get_images(self, obj):  # Новый метод!
+        images = obj.images.all()
+        serializer = ProductImageSerializer(
+            images,
+            many=True,
+            context=self.context
+        )
+        return serializer.data
 
-        main_image = obj.images.filter(is_main=True).first()
-        if main_image and main_image.image:
-            return self.context['request'].build_absolute_uri(main_image.image.url)
-
-        first_image = obj.images.first()
-        if first_image and first_image.image:
-            return self.context['request'].build_absolute_uri(first_image.image.url)
-
+    def get_image_url(self, obj):
+        if obj.image:
+            try:
+                if obj.image.storage.exists(obj.image.name):
+                    return self.context['request'].build_absolute_uri(obj.image.url)
+                return None
+            except (ValueError, AttributeError):
+                return None
         return None
 
-    def get_image_urls(self, obj):
-        """Возвращает список всех URL изображений продукта"""
-        if not hasattr(obj, 'images') or not obj.images.exists():
-            return []
-
-        return [
-            self.context['request'].build_absolute_uri(img.image.url)
-            for img in obj.images.all() if img.image
-        ]
+    def get_is_svg(self, obj):
+        try:
+            return obj.image.name.endswith('.svg') if obj.image else False
+        except (AttributeError, ValueError):
+            return False
 
     def get_display_price(self, obj):
         return obj.display_price()
 
 
 class CategoryProductsSerializer(serializers.ModelSerializer):
-    products = ProductSerializer(many=True, read_only=True)
+    products = serializers.SerializerMethodField()  # Изменено!
     image_url = serializers.SerializerMethodField()
     is_svg = serializers.SerializerMethodField()
 
@@ -109,13 +109,30 @@ class CategoryProductsSerializer(serializers.ModelSerializer):
         model = Category
         fields = ['id', 'name', 'image', 'image_url', 'is_svg', 'products']
 
+    def get_products(self, obj):
+        products = obj.products.all().prefetch_related('images')
+        serializer = ProductSerializer(
+            products,
+            many=True,
+            context=self.context
+        )
+        return serializer.data
+
     def get_image_url(self, obj):
         if obj.image:
-            return self.context['request'].build_absolute_uri(obj.image.url)
+            try:
+                if obj.image.storage.exists(obj.image.name):
+                    return self.context['request'].build_absolute_uri(obj.image.url)
+                return None
+            except (ValueError, AttributeError):
+                return None
         return None
 
     def get_is_svg(self, obj):
-        return obj.image.name.endswith('.svg') if obj.image else False
+        try:
+            return obj.image.name.endswith('.svg') if obj.image else False
+        except (AttributeError, ValueError):
+            return False
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
