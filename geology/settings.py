@@ -9,11 +9,11 @@ SECRET_KEY = os.environ.get('SECRET_KEY', default='the-best-secret-key')
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    'geologiya-ru.ru',
-    'www.geologiya-ru.ru',
-    '127.0.0.1',
-    'backend',
+    'api.geologiya-ru.ru',
     'localhost',
+    '127.0.0.1',
+    '83.166.245.78',
+    'backend'
 ]
 
 
@@ -172,9 +172,19 @@ ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+
+
 CSRF_TRUSTED_ORIGINS = [
-    'https://geologiya-ru.ru',
-    'https://www.geologiya-ru.ru'
+    'https://api.geologiya-ru.ru',
+    'https://83.166.245.78'
 ]
-CSRF_COOKIE_DOMAIN = '.geologiya-ru.ru'
+
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "https://geologiya-ru.ru"
+]
+
 
