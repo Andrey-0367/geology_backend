@@ -1,9 +1,12 @@
 from django.core.mail import send_mail
+from django.db.models import Count
 from rest_framework import viewsets, mixins
 from django.conf import settings
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.views import APIView
+
 from .permissions import IsSuperUserOrReadOnly
 
 from rest_framework import permissions
@@ -55,6 +58,51 @@ class CategoryViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         serializer = CategoryProductsSerializer(instance, context={'request': request})
         return Response(serializer.data)
+
+
+class CategoryFiltersView(APIView):
+    filter_fields = [
+        'size', 'brand', 'thread_connection',
+        'thread_connection_2', 'armament', 'seal', 'iadc'
+    ]
+
+    def get(self, request, category_id):
+        try:
+            category = Category.objects.get(id=category_id)
+        except Category.DoesNotExist:
+            return Response({"error": "Category not found"}, status=404)
+
+        # Применяем фильтры из запроса
+        filters = {}
+        for field in self.filter_fields:
+            value = request.query_params.get(field)
+            if value:
+                filters[field] = value
+
+        # Получаем продукты с учетом фильтров
+        products = Product.objects.filter(category=category, **filters)
+
+        # Группируем по характеристикам
+        result = {}
+        for field in self.filter_fields:
+            # Исключаем пустые значения
+            filtered_products = products.exclude(**{f"{field}__isnull": True})
+            filtered_products = filtered_products.exclude(**{field: ""})
+
+            # Группируем и считаем количество
+            aggregation = (
+                filtered_products
+                .values(field)
+                .annotate(count=Count('id'))
+                .order_by(field)
+            )
+
+            result[field] = [
+                {"value": item[field], "count": item["count"]}
+                for item in aggregation
+            ]
+
+        return Response(result)
 
 
 class ProductViewSet(viewsets.ModelViewSet):
