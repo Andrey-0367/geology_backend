@@ -77,7 +77,13 @@ class CategoryFiltersView(APIView):
         for field in self.filter_fields:
             value = request.query_params.get(field)
             if value:
-                filters[field] = value
+                filters[f"{field}__exact"] = value
+        # Фильтр по наличию
+        availability = request.query_params.get('availability')
+        if availability == 'in-stock':
+            filters['quantity__gt'] = 0
+        elif availability == 'out-of-stock':
+            filters['quantity'] = 0
 
         # Получаем продукты с учетом фильтров
         products = Product.objects.filter(category=category, **filters)
@@ -85,13 +91,11 @@ class CategoryFiltersView(APIView):
         # Группируем по характеристикам
         result = {}
         for field in self.filter_fields:
-            # Исключаем пустые значения
-            filtered_products = products.exclude(**{f"{field}__isnull": True})
-            filtered_products = filtered_products.exclude(**{field: ""})
-
             # Группируем и считаем количество
             aggregation = (
-                filtered_products
+                products
+                .exclude(**{field: None})  # Исключаем пустые значения
+                .exclude(**{field: ""})  # Исключаем пустые строки
                 .values(field)
                 .annotate(count=Count('id'))
                 .order_by(field)

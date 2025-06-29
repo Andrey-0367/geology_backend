@@ -1,8 +1,16 @@
 from django.urls import path, include
 from rest_framework import routers
-from .views import ContactMessageViewSet, EmployeeViewSet, CategoryViewSet, ProductViewSet, OrderViewSet, \
-    SaleItemViewSet, SaleItemImageViewSet, ProductImageViewSet, CategoryFiltersView
-
+from .views import (
+    ContactMessageViewSet,
+    EmployeeViewSet,
+    CategoryViewSet,
+    ProductViewSet,
+    OrderViewSet,
+    SaleItemViewSet,
+    SaleItemImageViewSet,
+    ProductImageViewSet,
+    CategoryFiltersView
+)
 
 api_urls: list = []
 v1_router_api = routers.DefaultRouter()
@@ -16,7 +24,9 @@ v1_router_api.register(r'orders', OrderViewSet, basename='order')
 v1_router_api.register(r'sale-items', SaleItemViewSet, basename='sale-items')
 v1_router_api.register(r'sale-item-images', SaleItemImageViewSet, basename='sale-item-images')
 
+# Добавьте путь для фильтров
 api_urls.append(path('categories/<int:category_id>/filters/', CategoryFiltersView.as_view(), name='category-filters'))
+
 api_urls.extend(v1_router_api.urls)
 
 urlpatterns = [
