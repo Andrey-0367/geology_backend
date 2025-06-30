@@ -60,6 +60,27 @@ class CategoryViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+def get_filter_counts(queryset, filter_fields):
+    """Возвращает доступные значения фильтров и их количество"""
+    result = {}
+    for field in filter_fields:
+        # Группируем и считаем количество
+        aggregation = (
+            queryset
+            .exclude(**{field: None})
+            .exclude(**{field: ""})
+            .values(field)
+            .annotate(count=Count('id'))
+            .order_by(field)
+        )
+
+        result[field] = [
+            {"value": item[field], "count": item["count"]}
+            for item in aggregation
+        ]
+    return result
+
+
 class CategoryFiltersView(APIView):
     filter_fields = [
         'size', 'brand', 'thread_connection',
@@ -78,6 +99,7 @@ class CategoryFiltersView(APIView):
             value = request.query_params.get(field)
             if value:
                 filters[f"{field}__exact"] = value
+
         # Фильтр по наличию
         availability = request.query_params.get('availability')
         if availability == 'in-stock':
@@ -88,40 +110,54 @@ class CategoryFiltersView(APIView):
         # Получаем продукты с учетом фильтров
         products = Product.objects.filter(category=category, **filters)
 
-        # Группируем по характеристикам
-        result = {}
-        for field in self.filter_fields:
-            # Группируем и считаем количество
-            aggregation = (
-                products
-                .exclude(**{field: None})  # Исключаем пустые значения
-                .exclude(**{field: ""})  # Исключаем пустые строки
-                .values(field)
-                .annotate(count=Count('id'))
-                .order_by(field)
-            )
-
-            result[field] = [
-                {"value": item[field], "count": item["count"]}
-                for item in aggregation
-            ]
-
+        # Используем общую функцию для получения фильтров
+        result = get_filter_counts(products, self.filter_fields)
         return Response(result)
 
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all().prefetch_related('images')
     serializer_class = ProductSerializer
+    filter_fields = [
+        'size', 'brand', 'thread_connection',
+        'thread_connection_2', 'armament', 'seal', 'iadc'
+    ]
 
     def get_serializer_context(self):
         return {'request': self.request}
 
     def get_queryset(self):
         queryset = super().get_queryset()
+
+        # Фильтрация по категории
         category_id = self.request.query_params.get('category')
         if category_id:
             queryset = queryset.filter(category_id=category_id)
+
+        # Фильтрация по наличию
+        availability = self.request.query_params.get('availability')
+        if availability == 'in-stock':
+            queryset = queryset.filter(quantity__gt=0)
+        elif availability == 'out-of-stock':
+            queryset = queryset.filter(quantity=0)
+
+        # Применяем дополнительные фильтры
+        for field in self.filter_fields:
+            value = self.request.query_params.get(field)
+            if value:
+                queryset = queryset.filter(**{field: value})
+
         return queryset
+
+    @action(detail=False, methods=['get'])
+    def filters(self, request):
+        """Возвращает доступные фильтры для продуктов"""
+        # Получаем базовый queryset
+        queryset = self.filter_queryset(self.get_queryset())
+
+        # Используем общую функцию для получения фильтров
+        result = get_filter_counts(queryset, self.filter_fields)
+        return Response(result)
 
 
 class ProductImageViewSet(viewsets.ModelViewSet):

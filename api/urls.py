@@ -24,8 +24,8 @@ v1_router_api.register(r'orders', OrderViewSet, basename='order')
 v1_router_api.register(r'sale-items', SaleItemViewSet, basename='sale-items')
 v1_router_api.register(r'sale-item-images', SaleItemImageViewSet, basename='sale-item-images')
 
-# Добавьте путь для фильтров
 api_urls.append(path('categories/<int:category_id>/filters/', CategoryFiltersView.as_view(), name='category-filters'))
+api_urls.append(path('products/filters/', ProductViewSet.as_view({'get': 'filters'}), name='product-filters'))
 
 api_urls.extend(v1_router_api.urls)
 
