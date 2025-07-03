@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
-from .models import Employee, Category, Product, SaleItemImage, SaleItem, ProductImage
+from .models import Employee, Category, Product, SaleItemImage, SaleItem, ProductImage, Order, OrderItem
 
 
 @admin.register(Employee)
@@ -125,4 +125,54 @@ class SaleItemAdmin(admin.ModelAdmin):
     class Meta:
         verbose_name = _('Товар распродажи')
         verbose_name_plural = _('Товары распродажи')
-        
+
+
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    extra = 0
+    readonly_fields = ('product', 'quantity', 'price', 'total_price')
+    fields = ('product', 'quantity', 'price', 'total_price')
+
+    def get_total(self, obj):
+        return obj.quantity * obj.price
+
+    get_total.short_description = 'Сумма'
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = (
+        'id', 'created_at', 'first_name', 'last_name',
+        'phone', 'total', 'status', 'city'
+    )
+    list_filter = ('status', 'created_at', 'city')
+    search_fields = ('id', 'first_name', 'last_name', 'phone')
+    readonly_fields = ('created_at', 'updated_at', 'user')
+    fieldsets = (
+        ('Основная информация', {
+            'fields': (
+                'user', 'status', 'total',
+                ('created_at', 'updated_at')
+            )
+        }),
+        ('Контактные данные', {
+            'fields': (
+                ('first_name', 'last_name'),
+                'phone', 'email', 'comment'
+            )
+        }),
+        ('Адрес доставки', {
+            'fields': (
+                'company', 'country', 'zip_code',
+                'region', 'city', 'address', 'delivery_method'
+            )
+        }),
+    )
+    inlines = [OrderItemInline]
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            readonly_fields = [f.name for f in self.model._meta.fields]
+            readonly_fields.append('user')
+            return readonly_fields
+        return self.readonly_fields

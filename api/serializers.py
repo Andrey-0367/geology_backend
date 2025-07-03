@@ -1,4 +1,11 @@
+from venv import logger
+
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 from rest_framework import serializers
+
+from geology import settings
 from .models import ContactMessage, Employee, Category, Product, OrderItem, Order, SaleItem, SaleItemImage, ProductImage
 
 
@@ -147,7 +154,11 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['phone', 'email', 'comment', 'items']
+        fields = [
+            'first_name', 'last_name', 'phone', 'email', 'comment',
+            'company', 'country', 'zip_code', 'region', 'city', 'address',
+            'delivery_method', 'agreed_to_terms', 'items'
+        ]
 
     def create(self, validated_data):
         items_data = validated_data.pop('items')
@@ -167,6 +178,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
         order.total = total
         order.save()
+
         return order
 
 

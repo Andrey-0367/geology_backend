@@ -1,0 +1,44 @@
+{% load custom_filters %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Новый заказ #{{ order.id }}</title>
+</head>
+<body>
+    <h2>Новый заказ #{{ order.id }}</h2>
+
+    <h3>Информация о клиенте:</h3>
+    <p>Имя: {{ order.first_name }} {{ order.last_name }}</p>
+    <p>Телефон: {{ order.phone }}</p>
+    <p>Email: {{ order.email }}</p>
+    <p>Адрес: {{ order.country }}, {{ order.zip_code }}, {{ order.region }}, {{ order.city }}, {{ order.address }}</p>
+    <p>Способ доставки: {{ order.delivery_method }}</p>
+
+    <h3>Состав заказа:</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Товар</th>
+                <th>Количество</th>
+                <th>Цена</th>
+                <th>Сумма</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.product.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.price }} ₽</td>
+                <td>{{ item.quantity|multiply:item.price }} ₽</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Итого: {{ order.total }} ₽</h3>
+
+    <p>Дата создания: {{ order.created_at|date:"d.m.Y H:i" }}</p>
+</body>
+</html>

@@ -1,8 +1,11 @@
 from decimal import Decimal
 import os
+from venv import logger
 
+from django.core.mail import send_mail
 from django.db import models
 from django.conf import settings
+from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 from django.core.validators import MinValueValidator
@@ -202,12 +205,46 @@ class Order(models.Model):
     phone = models.CharField(max_length=20)
     email = models.EmailField()
     comment = models.TextField(blank=True)
+    first_name = models.CharField("Имя", max_length=100)
+    last_name = models.CharField("Фамилия", max_length=100)
+    company = models.CharField("Компания", max_length=100, blank=True)
+    country = models.CharField("Страна", max_length=100, default="Российская Федерация")
+    zip_code = models.CharField("Индекс", max_length=20)
+    region = models.CharField("Регион", max_length=100)
+    city = models.CharField("Город", max_length=100)
+    address = models.CharField("Адрес", max_length=255)
+    delivery_method = models.CharField("Способ доставки", max_length=50)
+    agreed_to_terms = models.BooleanField("Согласие", default=False)
 
     class Meta:
         ordering = ['-created_at']
 
     def __str__(self):
         return f"Order #{self.id}"
+
+    def send_confirmation_email(self):
+        subject = f'Подтверждение заказа #{self.id}'
+        context = {
+            'order': self,
+            'items': self.items.all()
+        }
+
+        html_message = render_to_string('emails/order_confirmation.html', context)
+        plain_message = render_to_string('emails/order_confirmation.txt', context)
+
+        try:
+            send_mail(
+                subject,
+                plain_message,
+                settings.DEFAULT_FROM_EMAIL,  # Будет использовать mbo_geology@bk.ru
+                [self.email, '9254681012@mail.ru'],  # Отправка клиенту и администратору
+                html_message=html_message,
+                fail_silently=False
+            )
+            return True
+        except Exception as e:
+            logger.error(f"Ошибка отправки письма: {str(e)}")
+            return False
 
 
 class OrderItem(models.Model):

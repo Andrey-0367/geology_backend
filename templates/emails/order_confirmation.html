@@ -1,0 +1,51 @@
+{% load custom_filters %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Подтверждение заказа #{{ order.id }}</title>
+</head>
+<body>
+    <h2>Ваш заказ #{{ order.id }} успешно оформлен!</h2>
+
+    <h3>Информация о заказе:</h3>
+    <p><strong>Дата:</strong> {{ order.created_at|date:"d.m.Y H:i" }}</p>
+    <p><strong>Статус:</strong> {{ order.get_status_display }}</p>
+    <p><strong>Итого:</strong> {{ order.total }} ₽</p>
+
+    <h3>Состав заказа:</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Товар</th>
+                <th>Количество</th>
+                <th>Цена</th>
+                <th>Сумма</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.product.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.price }} ₽</td>
+                <td>{{ item.quantity|multiply:item.price }} ₽</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Контактная информация:</h3>
+    <p><strong>Имя:</strong> {{ order.first_name }} {{ order.last_name }}</p>
+    <p><strong>Телефон:</strong> {{ order.phone }}</p>
+    <p><strong>Email:</strong> {{ order.email }}</p>
+
+    <h3>Адрес доставки:</h3>
+    <p>{{ order.country }}, {{ order.zip_code }}</p>
+    <p>{{ order.region }}, {{ order.city }}</p>
+    <p>{{ order.address }}</p>
+    <p><strong>Способ доставки:</strong> {{ order.delivery_method }}</p>
+
+    <p>Спасибо за ваш заказ!</p>
+</body>
+</html>

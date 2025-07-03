@@ -1,0 +1,27 @@
+{% load custom_filters %}
+Подтверждение заказа #{{ order.id }}
+
+Ваш заказ успешно оформлен!
+
+Информация о заказе:
+Дата: {{ order.created_at|date:"d.m.Y H:i" }}
+Статус: {{ order.get_status_display }}
+Итого: {{ order.total }} ₽
+
+Состав заказа:
+{% for item in items %}
+- {{ item.product.name }}: {{ item.quantity }} x {{ item.price }} ₽ = {{ item.quantity|multiply:item.price }} ₽
+{% endfor %}
+
+Контактная информация:
+Имя: {{ order.first_name }} {{ order.last_name }}
+Телефон: {{ order.phone }}
+Email: {{ order.email }}
+
+Адрес доставки:
+{{ order.country }}, {{ order.zip_code }}
+{{ order.region }}, {{ order.city }}
+{{ order.address }}
+Способ доставки: {{ order.delivery_method }}
+
+Спасибо за ваш заказ!

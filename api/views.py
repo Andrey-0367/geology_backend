@@ -3,6 +3,7 @@ from django.db.models import Count
 from rest_framework import viewsets, mixins
 from django.conf import settings
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.views import APIView
@@ -43,6 +44,7 @@ class EmployeeViewSet(viewsets.ReadOnlyModelViewSet):
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = [IsSuperUserOrReadOnly]
 
     def get_serializer_context(self):
         return {'request': self.request}
@@ -118,6 +120,7 @@ class CategoryFiltersView(APIView):
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all().prefetch_related('images')
     serializer_class = ProductSerializer
+    permission_classes = [IsSuperUserOrReadOnly]
     filter_fields = [
         'size', 'brand', 'thread_connection',
         'thread_connection_2', 'armament', 'seal', 'iadc'
@@ -180,7 +183,6 @@ class ProductImageViewSet(viewsets.ModelViewSet):
 
 class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     http_method_names = ['post']
 
     def get_queryset(self):
@@ -191,9 +193,12 @@ class OrderViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         if self.request.user.is_authenticated:
-            serializer.save(user=self.request.user)
+            order = serializer.save(user=self.request.user)
         else:
-            serializer.save()
+            order = serializer.save()
+
+        # Отправляем письмо подтверждения
+        order.send_confirmation_email()
 
 
 class SaleItemViewSet(viewsets.ModelViewSet):
