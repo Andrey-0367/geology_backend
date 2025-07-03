@@ -133,10 +133,10 @@ class OrderItemInline(admin.TabularInline):
     readonly_fields = ('product', 'quantity', 'price', 'total_price')
     fields = ('product', 'quantity', 'price', 'total_price')
 
-    def get_total(self, obj):
+    def total_price(self, obj):
         return obj.quantity * obj.price
 
-    get_total.short_description = 'Сумма'
+    total_price.short_description = 'Сумма'
 
 
 @admin.register(Order)
