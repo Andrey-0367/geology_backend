@@ -1,6 +1,5 @@
 from decimal import Decimal
 import os
-from venv import logger
 
 from django.core.mail import send_mail
 from django.db import models
@@ -11,6 +10,9 @@ from django.utils.text import slugify
 from django.core.validators import MinValueValidator
 from django.utils.translation import gettext_lazy as _
 from .validators import validate_image_extension, validate_image_size, validate_svg_content
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class ContactMessage(models.Model):

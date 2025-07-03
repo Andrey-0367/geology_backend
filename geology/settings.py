@@ -187,3 +187,17 @@ EMAIL_HOST_USER = 'mbo_geology@bk.ru'
 EMAIL_HOST_PASSWORD = 'sG4P2hCAC3njuTvAYad7'
 DEFAULT_FROM_EMAIL = 'mbo_geology@bk.ru'
 SERVER_EMAIL = 'mbo_geology@bk.ru'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+}
