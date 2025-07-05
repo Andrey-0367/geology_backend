@@ -94,21 +94,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'geology.wsgi.application'
 
 # Database
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': os.environ.get('POSTGRES_DB', 'django'),
-#         'USER': os.environ.get('POSTGRES_USER', 'django_user'),
-#         'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
-#         'HOST': os.environ.get('DB_HOST', 'db'),
-#         'PORT': os.environ.get('DB_PORT', 5432)
-#     }
-# }
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('POSTGRES_DB', 'django'),
+        'USER': os.environ.get('POSTGRES_USER', 'django_user'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', 'db'),
+        'PORT': os.environ.get('DB_PORT', 5432)
     }
 }
 
