@@ -9,7 +9,7 @@ from .views import (
     SaleItemViewSet,
     SaleItemImageViewSet,
     ProductImageViewSet,
-    CategoryFiltersView
+    CategoryFiltersView, get_csrf_token
 )
 
 api_urls: list = []
@@ -26,6 +26,7 @@ v1_router_api.register(r'sale-item-images', SaleItemImageViewSet, basename='sale
 
 api_urls.append(path('categories/<int:category_id>/filters/', CategoryFiltersView.as_view(), name='category-filters'))
 api_urls.append(path('products/filters/', ProductViewSet.as_view({'get': 'filters'}), name='product-filters'))
+api_urls.append(path('csrf_token/', get_csrf_token, name='get_csrf_token'))
 
 api_urls.extend(v1_router_api.urls)
 

@@ -147,19 +147,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Security settings
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 
 # Настройки CSRF
+CSRF_COOKIE_SECURE = True
+CSRF_USE_SESSIONS = False
 CSRF_TRUSTED_ORIGINS = [
-    'https://api.geologiya-ru.ru',
-    'https://83.166.245.78',
     'https://geologiya-ru.ru',
+    'https://www.geologiya-ru.ru',
     'http://localhost:3000',
 ]
-
-
 # Дополнительные настройки CSRF
 CSRF_COOKIE_SAMESITE = 'None'
 SESSION_COOKIE_SAMESITE = 'None'
