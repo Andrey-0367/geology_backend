@@ -243,19 +243,14 @@ class Order(models.Model):
         html_message = render_to_string('emails/order_confirmation.html', context)
         plain_message = render_to_string('emails/order_confirmation.txt', context)
 
-        try:
-            send_mail(
-                subject,
-                plain_message,
-                settings.DEFAULT_FROM_EMAIL,  # Будет использовать mbo_geology@bk.ru
-                [self.email, '9254681012@mail.ru'],  # Отправка клиенту и администратору
-                html_message=html_message,
-                fail_silently=False
-            )
-            return True
-        except Exception as e:
-            logger.error(f"Ошибка отправки письма: {str(e)}")
-            return False
+        send_mail(
+            subject,
+            plain_message,
+            settings.DEFAULT_FROM_EMAIL,
+            [self.email, settings.ADMIN_EMAIL],
+            html_message=html_message,
+            fail_silently=False
+        )
 
 
 class OrderItem(models.Model):

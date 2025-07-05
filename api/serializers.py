@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import ContactMessage, Employee, Category, Product, OrderItem, Order, SaleItem, SaleItemImage, ProductImage
+from .models import ContactMessage, Employee, Category, Product, OrderItem, Order, SaleItem, SaleItemImage, \
+    ProductImage, logger
 
 
 class ContactMessageSerializer(serializers.ModelSerializer):
@@ -143,14 +144,19 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderItem
-        fields = ['product', 'quantity', 'price']
-        extra_kwargs = {
-            'price': {'read_only': True}
-        }
+        fields = ['product', 'quantity']
 
 
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True)
+
+    class Meta:
+        model = Order
+        fields = [
+            'first_name', 'last_name', 'phone', 'email', 'comment',
+            'company', 'country', 'zip_code', 'region', 'city', 'address',
+            'delivery_method', 'agreed_to_terms', 'items'
+        ]
 
     def create(self, validated_data):
         items_data = validated_data.pop('items')
@@ -159,16 +165,25 @@ class OrderSerializer(serializers.ModelSerializer):
 
         for item_data in items_data:
             product = item_data['product']
+
+            # Автоматически устанавливаем цену из продукта
             OrderItem.objects.create(
                 order=order,
                 product=product,
                 quantity=item_data['quantity'],
-                price=product.price
+                price=product.price  # Ключевое изменение
             )
             total += product.price * item_data['quantity']
 
         order.total = total
         order.save()
+
+        # Отправка email (с обработкой ошибок)
+        try:
+            order.send_confirmation_email()
+        except Exception as e:
+            logger.error(f"Ошибка отправки email: {str(e)}")
+
         return order
 
 
