@@ -110,7 +110,7 @@ class Product(models.Model):
         _('Цена'),
         max_digits=10,
         decimal_places=2,
-        validators=[MinValueValidator(0.01)],  # Минимальное значение 0.01
+        validators=[MinValueValidator(0.01)],
         help_text=_('Цена в рублях. Минимальное значение: 0.01')
     )
 
