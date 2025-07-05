@@ -13,7 +13,8 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     '83.166.245.78',
     'backend',
-    'geologiya-ru.ru'
+    'geologiya-ru.ru',
+    '0.0.0.0',
 ]
 
 # Application definition
