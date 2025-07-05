@@ -1,5 +1,6 @@
 from django.core.mail import send_mail
 from django.db.models import Count
+from django.views import View
 from rest_framework import viewsets, mixins
 from django.conf import settings
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -7,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from django.middleware.csrf import get_token
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
@@ -15,6 +16,18 @@ from .permissions import IsSuperUserOrReadOnly
 from .models import ContactMessage, Employee, Category, Product, Order, SaleItemImage, SaleItem, ProductImage
 from .serializers import ContactMessageSerializer, EmployeeSerializer, CategorySerializer, ProductSerializer, \
     OrderSerializer, SaleItemImageSerializer, SaleItemSerializer, ProductImageSerializer, CategoryProductsSerializer
+
+
+class RobotsTxtView(View):
+    def get(self, request):
+        lines = [
+            "User-agent: *",
+            "Disallow: /admin/",
+            "Disallow: /api/",
+            "Allow: /",
+            f"Sitemap: {settings.SITE_URL}/sitemap.xml"
+        ]
+        return HttpResponse("\n".join(lines), content_type="text/plain")
 
 
 @api_view(['GET'])

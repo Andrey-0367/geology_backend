@@ -181,6 +181,8 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER', 'mbo_geology@bk.ru')
 SERVER_EMAIL = os.environ.get('EMAIL_HOST_USER', 'mbo_geology@bk.ru')
 
+SITE_URL = 'https://geologiya-ru.ru'
+
 # Logging
 LOGGING = {
     'version': 1,
