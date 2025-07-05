@@ -12,7 +12,6 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
 from .permissions import IsSuperUserOrReadOnly
-
 from .models import ContactMessage, Employee, Category, Product, Order, SaleItemImage, SaleItem, ProductImage
 from .serializers import ContactMessageSerializer, EmployeeSerializer, CategorySerializer, ProductSerializer, \
     OrderSerializer, SaleItemImageSerializer, SaleItemSerializer, ProductImageSerializer, CategoryProductsSerializer
@@ -23,7 +22,16 @@ from .serializers import ContactMessageSerializer, EmployeeSerializer, CategoryS
 def get_csrf_token(request):
     """Вьюха для получения CSRF-токена"""
     token = get_token(request)
-    return JsonResponse({'csrfToken': token})
+    response = JsonResponse({'csrfToken': token})
+    response.set_cookie(
+        'csrftoken',
+        token,
+        domain=settings.CSRF_COOKIE_DOMAIN,
+        secure=settings.CSRF_COOKIE_SECURE,
+        samesite=settings.CSRF_COOKIE_SAMESITE,
+        httponly=settings.CSRF_COOKIE_HTTPONLY
+    )
+    return response
 
 
 class ContactMessageViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):

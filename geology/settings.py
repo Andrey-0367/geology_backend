@@ -165,6 +165,7 @@ CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_HTTPONLY = True
 CSRF_HEADER_NAME = 'HTTP_X_CSRFTOKEN'
 CSRF_COOKIE_NAME = 'csrftoken'
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
 
 # Настройка домена для кук
 CSRF_COOKIE_DOMAIN = '.geologiya-ru.ru'

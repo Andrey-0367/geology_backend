@@ -9,12 +9,17 @@ from .views import (
     SaleItemViewSet,
     SaleItemImageViewSet,
     ProductImageViewSet,
-    CategoryFiltersView, get_csrf_token
+    CategoryFiltersView,
+    get_csrf_token
 )
 
-api_urls: list = []
-v1_router_api = routers.DefaultRouter()
+api_urls = [
+    path('csrf_token/', get_csrf_token, name='get_csrf_token'),
+    path('categories/<int:category_id>/filters/', CategoryFiltersView.as_view(), name='category-filters'),
+    path('products/filters/', ProductViewSet.as_view({'get': 'filters'}), name='product-filters'),
+]
 
+v1_router_api = routers.DefaultRouter()
 v1_router_api.register(r'contact', ContactMessageViewSet, basename='contact-messages')
 v1_router_api.register(r'employees', EmployeeViewSet, basename='employees')
 v1_router_api.register(r'categories', CategoryViewSet, basename='categories')
@@ -23,10 +28,6 @@ v1_router_api.register(r'product-images', ProductImageViewSet, basename='product
 v1_router_api.register(r'orders', OrderViewSet, basename='order')
 v1_router_api.register(r'sale-items', SaleItemViewSet, basename='sale-items')
 v1_router_api.register(r'sale-item-images', SaleItemImageViewSet, basename='sale-item-images')
-
-api_urls.append(path('categories/<int:category_id>/filters/', CategoryFiltersView.as_view(), name='category-filters'))
-api_urls.append(path('products/filters/', ProductViewSet.as_view({'get': 'filters'}), name='product-filters'))
-api_urls.append(path('csrf_token/', get_csrf_token, name='get_csrf_token'))
 
 api_urls.extend(v1_router_api.urls)
 
