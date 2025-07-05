@@ -1,6 +1,7 @@
 from decimal import Decimal
 import os
 
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db import models
 from django.conf import settings
