@@ -144,47 +144,28 @@ class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = ['product', 'quantity', 'price']
+        extra_kwargs = {
+            'price': {'read_only': True}
+        }
 
 
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True)
 
-    class Meta:
-        model = Order
-        fields = [
-            'first_name', 'last_name', 'phone', 'email', 'comment',
-            'company', 'country', 'zip_code', 'region', 'city', 'address',
-            'delivery_method', 'agreed_to_terms', 'items'
-        ]
-
     def create(self, validated_data):
-        items_data = validated_data.pop('items', [])
-
-        # Проверка наличия товаров
-        if not items_data:
-            raise serializers.ValidationError({"items": "Необходим хотя бы один товар"})
-
+        items_data = validated_data.pop('items')
         order = Order.objects.create(**validated_data)
         total = 0
 
         for item_data in items_data:
-            product_id = item_data['product']
-            try:
-                product = Product.objects.get(pk=product_id)
-                price = product.price
-            except Product.DoesNotExist:
-                order.delete()
-                raise serializers.ValidationError(
-                    {"product": f"Товар с ID {product_id} не найден"}
-                )
-
+            product = item_data['product']
             OrderItem.objects.create(
                 order=order,
                 product=product,
                 quantity=item_data['quantity'],
-                price=price
+                price=product.price
             )
-            total += price * item_data['quantity']
+            total += product.price * item_data['quantity']
 
         order.total = total
         order.save()

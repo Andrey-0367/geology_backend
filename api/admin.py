@@ -38,15 +38,16 @@ class ProductImageInline(admin.TabularInline):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['name', 'size', 'category', 'quantity', 'price', 'display_price']
-    list_filter = ['category', 'price']
-    search_fields = ['name', 'description', 'price']
-    inlines = [ProductImageInline]
+    list_display = ['name', 'size', 'price', 'quantity']
+    search_fields = ['name', 'description']
+    list_filter = ['category']
+    readonly_fields = ['display_price']
+
     fieldsets = (
         (None, {
-            'fields': ('category', 'name', 'size', 'description', 'quantity', 'price')
+            'fields': ('category', 'name', 'size', 'description', 'price', 'quantity')
         }),
-        (_('Дополнительные характеристики'), {
+        ('Дополнительные характеристики', {
             'fields': ('brand', 'thread_connection', 'thread_connection_2', 'armament', 'seal', 'iadc'),
             'classes': ('collapse',)
         }),
@@ -55,8 +56,7 @@ class ProductAdmin(admin.ModelAdmin):
     def display_price(self, obj):
         return obj.display_price()
 
-    display_price.short_description = _('Цена')
-    display_price.admin_order_field = 'price'
+    display_price.short_description = 'Форматированная цена'
 
     class Meta:
         verbose_name = _('Продукт')

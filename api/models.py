@@ -9,6 +9,8 @@ from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 from django.core.validators import MinValueValidator
 from django.utils.translation import gettext_lazy as _
+
+
 from .validators import validate_image_extension, validate_image_size, validate_svg_content
 
 import logging
@@ -108,9 +110,8 @@ class Product(models.Model):
         _('Цена'),
         max_digits=10,
         decimal_places=2,
-        blank=True,
-        null=True,
-        help_text=_('Цена в рублях. Оставьте пустым для "Цены по запросу"')
+        validators=[MinValueValidator(0.01)],  # Минимальное значение 0.01
+        help_text=_('Цена в рублях. Минимальное значение: 0.01')
     )
 
     # Необязательные поля
@@ -127,15 +128,22 @@ class Product(models.Model):
         ordering = ['id']
 
     def __str__(self):
-        return f"{self.name} ({self.size})"
+        return f"{self.name} ({self.size})" if self.size else self.name
+
+    def clean(self):
+        """Валидация перед сохранением"""
+        if self.price <= 0:
+            raise ValidationError({'price': 'Цена должна быть больше 0'})
+
+    def save(self, *args, **kwargs):
+        """Автоматическая валидация при сохранении"""
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def display_price(self):
-        """Форматированное отображение цены или 'Цена по запросу'"""
-        if self.price is not None:
-
-            formatted_price = format(self.price, ',.2f').replace(',', ' ')
-            return f"{formatted_price} руб."
-        return _("Цена по запросу")
+        """Форматированное отображение цены"""
+        formatted_price = format(self.price, ',.2f').replace(',', ' ')
+        return f"{formatted_price} руб."
 
 
 class ProductImage(models.Model):
