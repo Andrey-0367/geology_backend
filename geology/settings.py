@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('SECRET_KEY', default='the-best-secret-key')
@@ -13,9 +12,9 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '83.166.245.78',
-    'backend'
+    'backend',
+    'geologiya-ru.ru'
 ]
-
 
 # Application definition
 INSTALLED_APPS = [
@@ -44,12 +43,9 @@ MIDDLEWARE = [
 
 INTERNAL_IPS = ALLOWED_HOSTS
 
-CORS_ALLOW_ALL_ORIGINS = (
-    os.environ.get('CORS_ALLOW_ALL_ORIGINS', 'True') == 'True'
-)
-CORS_ALLOW_CREDENTIALS = (
-    os.environ.get('CORS_ALLOW_CREDENTIALS', 'True') == 'True'
-)
+# Настройки CORS
+CORS_ALLOW_ALL_ORIGINS = True  # Для разработки, в продакшене = False
+CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
     'GET',
     'PATCH',
@@ -70,6 +66,12 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
+# Явно разрешенные домены
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "https://geologiya-ru.ru",
+    "https://www.geologiya-ru.ru",
+]
 
 ROOT_URLCONF = 'geology.urls'
 
@@ -89,13 +91,9 @@ TEMPLATES = [
     },
 ]
 
-
 WSGI_APPLICATION = 'geology.wsgi.application'
 
 # Database
-# https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -108,8 +106,6 @@ DATABASES = {
 }
 
 # Password validation
-# https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -131,64 +127,59 @@ REST_FRAMEWORK = {
 }
 
 # Internationalization
-# https://docs.djangoproject.com/en/3.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.2/howto/static-files/
-
+# Static files
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
-
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-
 # Default primary key field type
-# https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
+# Security settings
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 
-
+# Настройки CSRF
 CSRF_TRUSTED_ORIGINS = [
     'https://api.geologiya-ru.ru',
-    'https://83.166.245.78'
+    'https://83.166.245.78',
+    'https://geologiya-ru.ru',
+    'http://localhost:3000',
 ]
 
+# Дополнительные настройки CSRF
+CSRF_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_HTTPONLY = False
+SESSION_COOKIE_HTTPONLY = True
+CSRF_HEADER_NAME = 'HTTP_X_CSRFTOKEN'
+CSRF_COOKIE_NAME = 'csrftoken'
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "https://geologiya-ru.ru"
-]
+# Настройка домена для кук
+CSRF_COOKIE_DOMAIN = '.geologiya-ru.ru'
+SESSION_COOKIE_DOMAIN = '.geologiya-ru.ru'
 
-
+# Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.mail.ru'
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
-
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'mbo_geology@bk.ru')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-
 DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER', 'mbo_geology@bk.ru')
 SERVER_EMAIL = os.environ.get('EMAIL_HOST_USER', 'mbo_geology@bk.ru')
 
+# Logging
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -199,6 +190,18 @@ LOGGING = {
     },
     'root': {
         'handlers': ['console'],
-        'level': 'WARNING',
+        'level': 'DEBUG' if DEBUG else 'INFO',  # Увеличьте уровень логирования
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': True,
+        },
+        'django.security.csrf': {
+            'handlers': ['console'],
+            'level': 'DEBUG' if DEBUG else 'WARNING',
+            'propagate': False,
+        },
     },
 }

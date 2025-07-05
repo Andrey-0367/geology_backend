@@ -1,11 +1,4 @@
-from venv import logger
-
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
 from rest_framework import serializers
-
-from geology import settings
 from .models import ContactMessage, Employee, Category, Product, OrderItem, Order, SaleItem, SaleItemImage, ProductImage
 
 

@@ -3,14 +3,12 @@ from django.db.models import Count
 from rest_framework import viewsets, mixins
 from django.conf import settings
 from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 
 from .permissions import IsSuperUserOrReadOnly
 
-from rest_framework import permissions
 from .models import ContactMessage, Employee, Category, Product, Order, SaleItemImage, SaleItem, ProductImage
 from .serializers import ContactMessageSerializer, EmployeeSerializer, CategorySerializer, ProductSerializer, \
     OrderSerializer, SaleItemImageSerializer, SaleItemSerializer, ProductImageSerializer, CategoryProductsSerializer
