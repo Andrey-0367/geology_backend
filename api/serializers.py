@@ -137,6 +137,10 @@ class CategoryProductsSerializer(serializers.ModelSerializer):
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
+    product = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all()
+    )
+
     class Meta:
         model = OrderItem
         fields = ['product', 'quantity', 'price']
@@ -154,13 +158,26 @@ class OrderSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        items_data = validated_data.pop('items')
+        items_data = validated_data.pop('items', [])
+
+        # Проверка наличия товаров
+        if not items_data:
+            raise serializers.ValidationError({"items": "Необходим хотя бы один товар"})
+
         order = Order.objects.create(**validated_data)
         total = 0
 
         for item_data in items_data:
-            product = item_data['product']
-            price = product.price if product.price else 0
+            product_id = item_data['product']
+            try:
+                product = Product.objects.get(pk=product_id)
+                price = product.price
+            except Product.DoesNotExist:
+                order.delete()
+                raise serializers.ValidationError(
+                    {"product": f"Товар с ID {product_id} не найден"}
+                )
+
             OrderItem.objects.create(
                 order=order,
                 product=product,
@@ -171,7 +188,6 @@ class OrderSerializer(serializers.ModelSerializer):
 
         order.total = total
         order.save()
-
         return order
 
 

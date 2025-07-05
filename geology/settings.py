@@ -157,6 +157,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
 ]
 
+
 # Дополнительные настройки CSRF
 CSRF_COOKIE_SAMESITE = 'None'
 SESSION_COOKIE_SAMESITE = 'None'
