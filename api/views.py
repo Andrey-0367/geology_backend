@@ -2,7 +2,7 @@ from django.core.mail import send_mail
 from django.db.models import Count
 from django.template.loader import render_to_string
 from django.views import View
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, status
 from django.conf import settings
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
@@ -10,11 +10,14 @@ from rest_framework.decorators import action
 from rest_framework.views import APIView
 from django.http import HttpResponse
 from rest_framework.permissions import AllowAny
+import logging
 
 from .permissions import IsSuperUserOrReadOnly
 from .models import ContactMessage, Employee, Category, Product, Order, SaleItemImage, SaleItem, ProductImage
 from .serializers import ContactMessageSerializer, EmployeeSerializer, CategorySerializer, ProductSerializer, \
     OrderSerializer, SaleItemImageSerializer, SaleItemSerializer, ProductImageSerializer, CategoryProductsSerializer
+
+logger = logging.getLogger(__name__)
 
 
 class RobotsTxtView(View):
@@ -199,41 +202,77 @@ class OrderViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
 
-        # Отправка email
-        order = serializer.instance
-        self.send_order_email(order)
+            # Отправка email
+            order = serializer.instance
+            self.send_order_email(order)
 
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=201, headers=headers)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+        except Exception as e:
+            logger.error(f"Order creation error: {str(e)}")
+            return Response(
+                {"error": "Ошибка создания заказа", "details": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     def send_order_email(self, order):
-        items = order.orderitem_set.all()
-        subject = f'Подтверждение заказа #{order.id}'
+        try:
+            # Проверка наличия связи с OrderItem
+            if not hasattr(order, 'items'):
+                logger.error(f"Order {order.id} has no 'items' relation")
+                return
 
-        # Рендеринг текстовой версии
-        text_content = render_to_string(
-            'emails/order_confirmation.txt',
-            {'order': order, 'items': items}
-        )
+            items = order.items.all()
 
-        # Рендеринг HTML версии
-        html_content = render_to_string(
-            'emails/order_confirmation.html',
-            {'order': order, 'items': items}
-        )
+            # Подготовка данных для шаблона
+            context = {
+                'order': order,
+                'items': items,
+                'site_url': settings.SITE_URL
+            }
 
-        # Отправка письма
-        send_mail(
-            subject,
-            text_content,
-            settings.DEFAULT_FROM_EMAIL,
-            [order.email],
-            html_message=html_content
-        )
+            # Рендеринг писем
+            text_content = render_to_string('emails/order_confirmation.txt', context)
+            html_content = render_to_string('emails/order_confirmation.html', context)
+
+            # Отправка письма клиенту
+            send_mail(
+                f'Подтверждение заказа #{order.id}',
+                text_content,
+                settings.DEFAULT_FROM_EMAIL,
+                [order.email],
+                html_message=html_content,
+                fail_silently=False
+            )
+
+            # Отправка уведомления админу
+            admin_email = getattr(settings, 'ADMIN_EMAIL', None)
+            if not admin_email:
+                logger.error("ADMIN_EMAIL not set in settings")
+                return
+
+            send_mail(
+                f"Новый заказ #{order.id}",
+                f"Поступил новый заказ:\n\n"
+                f"ID: {order.id}\n"
+                f"Имя: {order.first_name} {order.last_name}\n"
+                f"Телефон: {order.phone}\n"
+                f"Email: {order.email}\n"
+                f"Сумма: {order.total} руб.\n"
+                f"Способ доставки: {order.delivery_method}",
+                settings.DEFAULT_FROM_EMAIL,
+                [admin_email],
+                fail_silently=False
+            )
+
+        except Exception as e:
+            logger.error(f"Email sending error for order {order.id}: {str(e)}")
 
 
 class SaleItemViewSet(viewsets.ModelViewSet):

@@ -15,7 +15,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Копирование проекта
 COPY . .
-
+COPY .env /app/.env
 # Сборка статики
 RUN python manage.py collectstatic --noinput
 
