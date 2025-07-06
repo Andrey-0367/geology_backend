@@ -200,30 +200,24 @@ class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [AllowAny]
+    http_method_names = ['post']
 
     def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        order = serializer.save()
+
+        # Отправка email с обработкой ошибок
         try:
-            serializer = self.get_serializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            self.perform_create(serializer)
-
-            # Отправка email
-            order = serializer.instance
             self.send_order_email(order)
-
-            headers = self.get_success_headers(serializer.data)
-            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
         except Exception as e:
-            logger.error(f"Order creation error: {str(e)}")
-            return Response(
-                {"error": "Ошибка создания заказа", "details": str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            logger.error(f"Email sending error: {str(e)}")
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def send_order_email(self, order):
         try:
-            # Проверка наличия связи с OrderItem
             if not hasattr(order, 'items'):
                 logger.error(f"Order {order.id} has no 'items' relation")
                 return

@@ -138,52 +138,46 @@ class CategoryProductsSerializer(serializers.ModelSerializer):
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
-    product = serializers.PrimaryKeyRelatedField(
-        queryset=Product.objects.all()
-    )
-
     class Meta:
         model = OrderItem
         fields = ['product', 'quantity']
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    items = OrderItemSerializer(many=True)
+    items = OrderItemSerializer(many=True, required=True)
 
     class Meta:
         model = Order
         fields = [
-            'first_name', 'last_name', 'phone', 'email', 'comment',
-            'company', 'country', 'zip_code', 'region', 'city', 'address',
-            'delivery_method', 'agreed_to_terms', 'items'
+            'id', 'first_name', 'last_name', 'email', 'phone',
+            'company', 'country', 'zip_code', 'region', 'city',
+            'address', 'delivery_method', 'comment', 'agreed_to_terms',
+            'total', 'items'
         ]
+        extra_kwargs = {
+            'total': {'read_only': True},
+        }
 
     def create(self, validated_data):
         items_data = validated_data.pop('items')
         order = Order.objects.create(**validated_data)
-        total = 0
 
+        total = 0
         for item_data in items_data:
             product = item_data['product']
+            quantity = item_data['quantity']
+            price = product.price
 
-            # Автоматически устанавливаем цену из продукта
             OrderItem.objects.create(
                 order=order,
                 product=product,
-                quantity=item_data['quantity'],
-                price=product.price  # Ключевое изменение
+                quantity=quantity,
+                price=price
             )
-            total += product.price * item_data['quantity']
+            total += price * quantity
 
         order.total = total
         order.save()
-
-        # Отправка email (с обработкой ошибок)
-        try:
-            order.send_confirmation_email()
-        except Exception as e:
-            logger.error(f"Ошибка отправки email: {str(e)}")
-
         return order
 
 
