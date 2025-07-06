@@ -10,7 +10,7 @@ from .views import (
     SaleItemImageViewSet,
     ProductImageViewSet,
     CategoryFiltersView,
-    get_csrf_token, RobotsTxtView
+    RobotsTxtView
 )
 
 simple_urls = [
