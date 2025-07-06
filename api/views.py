@@ -1,5 +1,6 @@
 from django.core.mail import send_mail
 from django.db.models import Count
+from django.template.loader import render_to_string
 from django.views import View
 from rest_framework import viewsets, mixins
 from django.conf import settings
@@ -7,9 +8,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.views import APIView
-from django.middleware.csrf import get_token
-from django.http import JsonResponse, HttpResponse
-from rest_framework.decorators import api_view, permission_classes
+from django.http import HttpResponse
 from rest_framework.permissions import AllowAny
 
 from .permissions import IsSuperUserOrReadOnly
@@ -20,31 +19,13 @@ from .serializers import ContactMessageSerializer, EmployeeSerializer, CategoryS
 
 class RobotsTxtView(View):
     def get(self, request):
-        lines = [
+        content = [
             "User-agent: *",
             "Disallow: /admin/",
-            "Disallow: /api/",
             "Allow: /",
             f"Sitemap: {settings.SITE_URL}/sitemap.xml"
         ]
-        return HttpResponse("\n".join(lines), content_type="text/plain")
-
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def get_csrf_token(request):
-    """Вьюха для получения CSRF-токена"""
-    token = get_token(request)
-    response = JsonResponse({'csrfToken': token})
-    response.set_cookie(
-        'csrftoken',
-        token,
-        domain=settings.CSRF_COOKIE_DOMAIN,
-        secure=settings.CSRF_COOKIE_SECURE,
-        samesite=settings.CSRF_COOKIE_SAMESITE,
-        httponly=settings.CSRF_COOKIE_HTTPONLY
-    )
-    return response
+        return HttpResponse("\n".join(content), content_type="text/plain")
 
 
 class ContactMessageViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
@@ -213,23 +194,46 @@ class ProductImageViewSet(viewsets.ModelViewSet):
 
 
 class OrderViewSet(viewsets.ModelViewSet):
+    queryset = Order.objects.all()
     serializer_class = OrderSerializer
-    http_method_names = ['post']
+    permission_classes = [AllowAny]
 
-    def get_queryset(self):
-        user = self.request.user
-        if user.is_authenticated:
-            return Order.objects.filter(user=user)
-        return Order.objects.none()
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
 
-    def perform_create(self, serializer):
-        if self.request.user.is_authenticated:
-            order = serializer.save(user=self.request.user)
-        else:
-            order = serializer.save()
+        # Отправка email
+        order = serializer.instance
+        self.send_order_email(order)
 
-        # Отправляем письмо подтверждения
-        order.send_confirmation_email()
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=201, headers=headers)
+
+    def send_order_email(self, order):
+        items = order.orderitem_set.all()
+        subject = f'Подтверждение заказа #{order.id}'
+
+        # Рендеринг текстовой версии
+        text_content = render_to_string(
+            'emails/order_confirmation.txt',
+            {'order': order, 'items': items}
+        )
+
+        # Рендеринг HTML версии
+        html_content = render_to_string(
+            'emails/order_confirmation.html',
+            {'order': order, 'items': items}
+        )
+
+        # Отправка письма
+        send_mail(
+            subject,
+            text_content,
+            settings.DEFAULT_FROM_EMAIL,
+            [order.email],
+            html_message=html_content
+        )
 
 
 class SaleItemViewSet(viewsets.ModelViewSet):
