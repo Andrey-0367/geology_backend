@@ -1,6 +1,5 @@
 from django.core.mail import send_mail
 from django.db.models import Count
-from django.template.loader import render_to_string
 from django.views import View
 from rest_framework import viewsets, mixins, status
 from django.conf import settings
@@ -24,7 +23,10 @@ class RobotsTxtView(View):
     content = "User-agent: *\nDisallow: /admin/\nAllow: /"
 
     def get(self, request, *args, **kwargs):
-        return HttpResponse(self.content, content_type='text/plain')
+        return HttpResponse(
+            self.content,
+            content_type='text/plain'
+        )
 
 
 class ContactMessageViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):

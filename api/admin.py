@@ -1,7 +1,8 @@
 from django.contrib import admin
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
-from .models import Employee, Category, Product, SaleItemImage, SaleItem, ProductImage, Order, OrderItem
+from .models import Employee, Category, Product, SaleItemImage, SaleItem, ProductImage, Order
 
 
 @admin.register(Employee)
@@ -127,18 +128,6 @@ class SaleItemAdmin(admin.ModelAdmin):
         verbose_name_plural = _('Товары распродажи')
 
 
-class OrderItemInline(admin.TabularInline):
-    model = OrderItem
-    extra = 0
-    readonly_fields = ('product', 'quantity', 'price', 'total_price')
-    fields = ('product', 'quantity', 'price', 'total_price')
-
-    def total_price(self, obj):
-        return obj.quantity * obj.price
-
-    total_price.short_description = 'Сумма'
-
-
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = (
@@ -146,13 +135,18 @@ class OrderAdmin(admin.ModelAdmin):
         'phone', 'total', 'status', 'city'
     )
     list_filter = ('status', 'created_at', 'city')
-    search_fields = ('id', 'first_name', 'last_name', 'phone')
-    readonly_fields = ('created_at', 'updated_at', 'user')
+    search_fields = ('id', 'first_name', 'last_name', 'phone', 'email')
+    readonly_fields = (
+        'created_at',
+        'updated_at',
+        'formatted_products',
+        'total'
+    )
     fieldsets = (
         ('Основная информация', {
             'fields': (
-                'user', 'status', 'total',
-                ('created_at', 'updated_at')
+                'status', 'total',
+                ('created_at', 'updated_at'),
             )
         }),
         ('Контактные данные', {
@@ -167,12 +161,40 @@ class OrderAdmin(admin.ModelAdmin):
                 'region', 'city', 'address', 'delivery_method'
             )
         }),
+        ('Товары', {
+            'fields': ('formatted_products',)
+        }),
     )
-    inlines = [OrderItemInline]
+
+    def formatted_products(self, obj):
+        """Форматированное отображение товаров в админке"""
+        if not obj.products:
+            return "Нет товаров"
+
+        products_html = "<ul>"
+        for product in obj.products:
+            products_html += f"<li>{product.get('name', 'Без названия')}"
+            products_html += f" - {product.get('quantity', 1)} шт."
+            if 'price' in product:
+                products_html += f" ({product['price']} руб. за шт.)"
+            products_html += "</li>"
+        products_html += "</ul>"
+        return format_html(products_html)
+
+    formatted_products.short_description = 'Товары'
+
+    def get_fields(self, request, obj=None):
+        """Динамическое управление полями в форме"""
+        fields = super().get_fields(request, obj)
+        if obj:  # Для существующего объекта
+            # Добавляем поле products в режиме только для чтения
+            return fields + ('products',)
+        return fields
 
     def get_readonly_fields(self, request, obj=None):
-        if obj:
-            readonly_fields = [f.name for f in self.model._meta.fields]
-            readonly_fields.append('user')
-            return readonly_fields
-        return self.readonly_fields
+        """Управление полями только для чтения"""
+        readonly_fields = super().get_readonly_fields(request, obj)
+        if obj:  # Для существующего объекта
+            return readonly_fields + ('products',)
+        return readonly_fields
+

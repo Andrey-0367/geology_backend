@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ContactMessage, Employee, Category, Product, OrderItem, Order, SaleItem, SaleItemImage, \
+from .models import ContactMessage, Employee, Category, Product, Order, SaleItem, SaleItemImage, \
     ProductImage
 
 

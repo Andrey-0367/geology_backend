@@ -2,10 +2,8 @@ from decimal import Decimal
 import os
 
 from django.core.exceptions import ValidationError
-from django.core.mail import send_mail
 from django.db import models
 from django.conf import settings
-from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 from django.core.validators import MinValueValidator
@@ -206,7 +204,7 @@ class Order(models.Model):
     address = models.CharField("Адрес", max_length=255)
     delivery_method = models.CharField("Способ доставки", max_length=50)
     agreed_to_terms = models.BooleanField("Согласие", default=False)
-    products = models.JSONField("Товары")  # Упрощаем хранение товаров
+    products = models.JSONField("Товары",  default=list)
 
     def __str__(self):
         return f"Order #{self.id}"
