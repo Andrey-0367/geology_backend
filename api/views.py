@@ -1,13 +1,13 @@
+import threading
+
 from django.core.mail import send_mail
 from django.db.models import Count
-from django.views import View
 from rest_framework import viewsets, mixins, status
 from django.conf import settings
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.views import APIView
-from django.http import HttpResponse
 from rest_framework.permissions import AllowAny
 import logging
 
@@ -17,16 +17,6 @@ from .serializers import ContactMessageSerializer, EmployeeSerializer, CategoryS
     OrderSerializer, SaleItemImageSerializer, SaleItemSerializer, ProductImageSerializer, CategoryProductsSerializer
 
 logger = logging.getLogger(__name__)
-
-
-class RobotsTxtView(View):
-    content = "User-agent: *\nDisallow: /admin/\nAllow: /"
-
-    def get(self, request, *args, **kwargs):
-        return HttpResponse(
-            self.content,
-            content_type='text/plain'
-        )
 
 
 class ContactMessageViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
@@ -201,40 +191,60 @@ class OrderViewSet(viewsets.ModelViewSet):
     http_method_names = ['post']  # Только POST для создания заказов
 
     def create(self, request, *args, **kwargs):
+        # Сохраняем заказ
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         order = serializer.save()
 
-        # Простейшая отправка email
+        # Запускаем отправку email в фоновом режиме (не блокирует ответ)
         try:
-            self.send_order_email(order)
+            # Используем поток, чтобы не блокировать основной процесс
+            threading.Thread(
+                target=self.send_simple_email,
+                args=(order,),
+                daemon=True
+            ).start()
         except Exception as e:
-            logger.error(f"Email sending error: {str(e)}")
+            logger.error(f"Failed to start email thread: {str(e)}")
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def send_order_email(self, order):
-        """Упрощённая отправка email без шаблонов"""
-        subject = f'Новый заказ #{order.id}'
-        message = (
-            f"Новый заказ:\n\n"
-            f"ID: {order.id}\n"
-            f"Имя: {order.first_name} {order.last_name}\n"
-            f"Телефон: {order.phone}\n"
-            f"Email: {order.email}\n"
-            f"Адрес: {order.country}, {order.region}, {order.city}, {order.address}\n"
-            f"Товары: {order.products}\n"
-            f"Сумма: {order.total} руб."
-        )
+    def send_simple_email(self, order):
+        """Минимальная отправка уведомления администратору"""
+        try:
+            subject = f'🛒 Новый заказ #{order.id}'
+            message = (
+                f"Поступил новый заказ!\n\n"
+                f"🔹 Номер: {order.id}\n"
+                f"👤 Клиент: {order.first_name} {order.last_name}\n"
+                f"📞 Телефон: {order.phone}\n"
+                f"✉️ Email: {order.email}\n"
+                f"📍 Адрес: {order.city}, {order.address}\n"
+                f"💰 Сумма: {order.total} руб.\n\n"
+                f"📦 Товары:\n"
+            )
 
-        # Отправка админу
-        send_mail(
-            subject,
-            message,
-            settings.DEFAULT_FROM_EMAIL,
-            [settings.EMAIL_HOST_USER],  # Отправляем себе
-            fail_silently=False
-        )
+            # Добавляем информацию о товарах
+            for i, product in enumerate(order.products, 1):
+                message += (
+                    f"{i}. {product.get('name', 'Без названия')} - "
+                    f"{product.get('quantity', 1)} шт. x "
+                    f"{product.get('price', 0)} руб.\n"
+                )
+
+            # Отправляем письмо только администратору
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [settings.EMAIL_HOST_USER],  # Адрес администратора
+                fail_silently=False,
+                timeout=30  # Максимальное время ожидания
+            )
+            logger.info(f"Order email sent for order #{order.id}")
+
+        except Exception as e:
+            logger.error(f"Email sending failed for order #{order.id}: {str(e)}")
 
 
 class SaleItemViewSet(viewsets.ModelViewSet):

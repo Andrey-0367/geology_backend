@@ -10,7 +10,6 @@ from .views import (
     SaleItemImageViewSet,
     ProductImageViewSet,
     CategoryFiltersView,
-    RobotsTxtView
 )
 
 api_urls = [
@@ -30,7 +29,6 @@ v1_router_api.register(r'sale-item-images', SaleItemImageViewSet, basename='sale
 api_urls.extend(v1_router_api.urls)
 
 urlpatterns = [
-    path('robots.txt', RobotsTxtView.as_view(), name='robots_txt'),
     path('orders/', OrderViewSet.as_view({'post': 'create'}), name='order-create'),
     path('v1/', include(api_urls)),
 ]
