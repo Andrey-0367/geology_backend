@@ -21,14 +21,10 @@ logger = logging.getLogger(__name__)
 
 
 class RobotsTxtView(View):
-    def get(self, request):
-        content = [
-            "User-agent: *",
-            "Disallow: /admin/",
-            "Allow: /",
-            f"Sitemap: {settings.SITE_URL}/sitemap.xml"
-        ]
-        return HttpResponse("\n".join(content), content_type="text/plain")
+    content = "User-agent: *\nDisallow: /admin/\nAllow: /"
+
+    def get(self, request, *args, **kwargs):
+        return HttpResponse(self.content, content_type='text/plain')
 
 
 class ContactMessageViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
@@ -200,73 +196,43 @@ class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [AllowAny]
-    http_method_names = ['post']
+    http_method_names = ['post']  # Только POST для создания заказов
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         order = serializer.save()
 
-        # Отправка email с обработкой ошибок
+        # Простейшая отправка email
         try:
             self.send_order_email(order)
         except Exception as e:
             logger.error(f"Email sending error: {str(e)}")
 
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def send_order_email(self, order):
-        try:
-            if not hasattr(order, 'items'):
-                logger.error(f"Order {order.id} has no 'items' relation")
-                return
+        """Упрощённая отправка email без шаблонов"""
+        subject = f'Новый заказ #{order.id}'
+        message = (
+            f"Новый заказ:\n\n"
+            f"ID: {order.id}\n"
+            f"Имя: {order.first_name} {order.last_name}\n"
+            f"Телефон: {order.phone}\n"
+            f"Email: {order.email}\n"
+            f"Адрес: {order.country}, {order.region}, {order.city}, {order.address}\n"
+            f"Товары: {order.products}\n"
+            f"Сумма: {order.total} руб."
+        )
 
-            items = order.items.all()
-
-            # Подготовка данных для шаблона
-            context = {
-                'order': order,
-                'items': items,
-                'site_url': settings.SITE_URL
-            }
-
-            # Рендеринг писем
-            text_content = render_to_string('emails/order_confirmation.txt', context)
-            html_content = render_to_string('emails/order_confirmation.html', context)
-
-            # Отправка письма клиенту
-            send_mail(
-                f'Подтверждение заказа #{order.id}',
-                text_content,
-                settings.DEFAULT_FROM_EMAIL,
-                [order.email],
-                html_message=html_content,
-                fail_silently=False
-            )
-
-            # Отправка уведомления админу
-            admin_email = getattr(settings, 'ADMIN_EMAIL', None)
-            if not admin_email:
-                logger.error("ADMIN_EMAIL not set in settings")
-                return
-
-            send_mail(
-                f"Новый заказ #{order.id}",
-                f"Поступил новый заказ:\n\n"
-                f"ID: {order.id}\n"
-                f"Имя: {order.first_name} {order.last_name}\n"
-                f"Телефон: {order.phone}\n"
-                f"Email: {order.email}\n"
-                f"Сумма: {order.total} руб.\n"
-                f"Способ доставки: {order.delivery_method}",
-                settings.DEFAULT_FROM_EMAIL,
-                [admin_email],
-                fail_silently=False
-            )
-
-        except Exception as e:
-            logger.error(f"Email sending error for order {order.id}: {str(e)}")
+        # Отправка админу
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [settings.EMAIL_HOST_USER],  # Отправляем себе
+            fail_silently=False
+        )
 
 
 class SaleItemViewSet(viewsets.ModelViewSet):

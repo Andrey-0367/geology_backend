@@ -189,30 +189,10 @@ class ProductImage(models.Model):
 
 
 class Order(models.Model):
-    STATUS_CHOICES = [
-        ('new', 'Новый'),
-        ('processing', 'В обработке'),
-        ('completed', 'Завершен'),
-    ]
-
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
-    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    status = models.CharField(
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default='new'
-    )
-    total = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=0
-    )
+    status = models.CharField(max_length=20, default='new')
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     phone = models.CharField(max_length=20)
     email = models.EmailField()
     comment = models.TextField(blank=True)
@@ -226,44 +206,10 @@ class Order(models.Model):
     address = models.CharField("Адрес", max_length=255)
     delivery_method = models.CharField("Способ доставки", max_length=50)
     agreed_to_terms = models.BooleanField("Согласие", default=False)
-
-    class Meta:
-        ordering = ['-created_at']
+    products = models.JSONField("Товары")  # Упрощаем хранение товаров
 
     def __str__(self):
         return f"Order #{self.id}"
-
-    def send_confirmation_email(self):
-        subject = f'Подтверждение заказа #{self.id}'
-        context = {
-            'order': self,
-            'items': self.items.all()
-        }
-
-        html_message = render_to_string('emails/order_confirmation.html', context)
-        plain_message = render_to_string('emails/order_confirmation.txt', context)
-
-        send_mail(
-            subject,
-            plain_message,
-            settings.DEFAULT_FROM_EMAIL,
-            [self.email, settings.ADMIN_EMAIL],
-            html_message=html_message,
-            fail_silently=False
-        )
-
-
-class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(
-        'Product',
-        on_delete=models.PROTECT
-    )
-    quantity = models.PositiveIntegerField(default=1)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-
-    def __str__(self):
-        return f"{self.product.name} x{self.quantity}"
 
 
 class SaleItem(models.Model):
