@@ -1,5 +1,3 @@
-import threading
-
 from django.core.mail import send_mail
 from django.db.models import Count
 from rest_framework import viewsets, mixins, status
@@ -10,6 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 import logging
+import threading
 
 from .permissions import IsSuperUserOrReadOnly
 from .models import ContactMessage, Employee, Category, Product, Order, SaleItemImage, SaleItem, ProductImage
@@ -188,7 +187,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [AllowAny]
-    http_method_names = ['post']  # Только POST для создания заказов
+    http_method_names = ['post']
 
     def create(self, request, *args, **kwargs):
         # Сохраняем заказ
@@ -196,9 +195,8 @@ class OrderViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         order = serializer.save()
 
-        # Запускаем отправку email в фоновом режиме (не блокирует ответ)
+        # Запускаем отправку email в фоновом режиме
         try:
-            # Используем поток, чтобы не блокировать основной процесс
             threading.Thread(
                 target=self.send_simple_email,
                 args=(order,),
@@ -237,9 +235,8 @@ class OrderViewSet(viewsets.ModelViewSet):
                 subject,
                 message,
                 settings.DEFAULT_FROM_EMAIL,
-                [settings.EMAIL_HOST_USER],  # Адрес администратора
-                fail_silently=False,
-                timeout=30  # Максимальное время ожидания
+                [settings.EMAIL_HOST_USER],
+                fail_silently=False
             )
             logger.info(f"Order email sent for order #{order.id}")
 
