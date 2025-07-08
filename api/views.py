@@ -1,5 +1,6 @@
 from django.core.mail import send_mail
 from django.db.models import Count
+from django.views.decorators.csrf import csrf_protect
 from rest_framework import viewsets, mixins, status
 from django.conf import settings
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -183,6 +184,7 @@ class ProductImageViewSet(viewsets.ModelViewSet):
         return context
 
 
+@csrf_protect
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
