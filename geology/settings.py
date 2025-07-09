@@ -71,7 +71,7 @@ CORS_ALLOW_HEADERS = [
     'content-type',
     'origin',
     'user-agent',
-    'X-CSRFToken'
+    'x-csrftoken',
     'x-requested-with',
 ]
 
@@ -155,8 +155,9 @@ CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SAMESITE = 'None' if DEBUG else 'Lax'
 CSRF_COOKIE_HTTPONLY = False
 CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy()
-CSRF_HEADER_NAME = 'X-CSRFToken'
-CSRF_COOKIE_NAME = 'csrftoken'
+CSRF_HEADER_NAME = 'HTTP_X_CSRFTOKEN'  # Стандартное имя в Django
+CSRF_COOKIE_NAME = 'csrftoken'  # Стандартное имя куки
+
 
 # Настройки сессии
 SESSION_COOKIE_SECURE = not DEBUG
