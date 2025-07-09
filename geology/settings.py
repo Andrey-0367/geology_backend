@@ -151,23 +151,20 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Настройки CSRF
+CSRF_COOKIE_DOMAIN = '.geologiya-ru.ru'
 CSRF_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SAMESITE = 'None' if DEBUG else 'Lax'
+CSRF_COOKIE_SAMESITE = 'None'
 CSRF_COOKIE_HTTPONLY = False
-CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy()
-CSRF_HEADER_NAME = 'HTTP_X_CSRFTOKEN'  # Стандартное имя в Django
-CSRF_COOKIE_NAME = 'csrftoken'  # Стандартное имя куки
-
+CSRF_TRUSTED_ORIGINS = [
+    "https://geologiya-ru.ru",
+    "https://www.geologiya-ru.ru",
+]
 
 # Настройки сессии
+SESSION_COOKIE_DOMAIN = '.geologiya-ru.ru'
 SESSION_COOKIE_SECURE = not DEBUG
-SESSION_COOKIE_SAMESITE = 'None' if DEBUG else 'Lax'
-SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'None'
 
-# Прокси-заголовки
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-USE_X_FORWARDED_HOST = True
-USE_X_FORWARDED_PORT = True
 
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
