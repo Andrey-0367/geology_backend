@@ -156,6 +156,7 @@ CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SAMESITE = 'None'
 CSRF_COOKIE_HTTPONLY = False
 CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
     "https://geologiya-ru.ru",
     "https://www.geologiya-ru.ru",
 ]
