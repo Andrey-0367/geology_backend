@@ -152,20 +152,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Настройки CSRF
 CSRF_COOKIE_DOMAIN = '.geologiya-ru.ru'
-CSRF_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SAMESITE = 'None'
-CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_HTTPONLY = True
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "https://geologiya-ru.ru",
     "https://www.geologiya-ru.ru",
 ]
-
-# Настройки сессии
-SESSION_COOKIE_DOMAIN = '.geologiya-ru.ru'
-SESSION_COOKIE_SECURE = not DEBUG
-SESSION_COOKIE_SAMESITE = 'None'
-
 
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

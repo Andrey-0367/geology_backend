@@ -25,10 +25,10 @@ v1_router_api.register(r'products', ProductViewSet, basename='products')
 v1_router_api.register(r'product-images', ProductImageViewSet, basename='product-images')
 v1_router_api.register(r'sale-items', SaleItemViewSet, basename='sale-items')
 v1_router_api.register(r'sale-item-images', SaleItemImageViewSet, basename='sale-item-images')
+v1_router_api.register(r'orders', OrderViewSet, basename='orders')
 
 api_urls.extend(v1_router_api.urls)
 
 urlpatterns = [
-    path('orders/', OrderViewSet.as_view({'post': 'create'}), name='order-create'),
     path('v1/', include(api_urls)),
 ]

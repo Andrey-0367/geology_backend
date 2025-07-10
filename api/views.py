@@ -184,12 +184,12 @@ class ProductImageViewSet(viewsets.ModelViewSet):
         return context
 
 
-@csrf_protect
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [AllowAny]
     http_method_names = ['post']
+    authentication_classes = []
 
     def create(self, request, *args, **kwargs):
         # Сохраняем заказ
