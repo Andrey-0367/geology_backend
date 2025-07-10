@@ -188,7 +188,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [AllowAny]
-    http_method_names = ['post']
+    http_method_names = ['get', 'post']
     authentication_classes = []
 
     def create(self, request, *args, **kwargs):
