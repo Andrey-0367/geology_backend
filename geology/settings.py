@@ -53,6 +53,8 @@ CORS_ALLOWED_ORIGINS = [
     "https://geologiya-ru.ru",
     "https://www.geologiya-ru.ru",
     "http://localhost:3000",
+    "https://localhost:3000",  # Добавлено для локального HTTPS
+    "http://127.0.0.1:3000",
 ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
@@ -142,24 +144,43 @@ USE_L10N = True
 USE_TZ = True
 
 # Static files
-STATIC_URL = '/static/'
+STATIC_URL = 'https://api.geologiya-ru.ru/static/'
+# STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
 
-MEDIA_URL = '/media/'
+MEDIA_URL = 'https://api.geologiya-ru.ru/media/'
+# MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True  # Перенаправлять все HTTP на HTTPS
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
 # Настройки CSRF
 CSRF_COOKIE_DOMAIN = '.geologiya-ru.ru'
-CSRF_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'None'  # Для кросс-доменных запросов
+CSRF_COOKIE_HTTPONLY = False   # Чтобы JavaScript мог читать куки
+CSRF_USE_SESSIONS = False
+
+
+# Дополнительные настройки для работы с куки
+SESSION_COOKIE_DOMAIN = '.geologiya-ru.ru'
+SESSION_COOKIE_SAMESITE = 'None'  # Для кросс-доменных запросов
+
+# Обновленные CSRF_TRUSTED_ORIGINS
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
+    "https://localhost:3000",
+    "http://127.0.0.1:3000",
     "https://geologiya-ru.ru",
     "https://www.geologiya-ru.ru",
+    "https://api.geologiya-ru.ru",  # Добавлено API домен
 ]
+
 
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
