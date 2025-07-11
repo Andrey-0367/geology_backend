@@ -1,6 +1,5 @@
 from django.core.mail import send_mail
 from django.db.models import Count
-from django.views.decorators.csrf import csrf_protect
 from rest_framework import viewsets, mixins, status
 from django.conf import settings
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -257,6 +256,11 @@ class SaleItemViewSet(viewsets.ModelViewSet):
             return self.queryset.filter(is_active=True)
         return self.queryset
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
 
 class SaleItemImageViewSet(viewsets.ModelViewSet):
     serializer_class = SaleItemImageSerializer
@@ -268,3 +272,8 @@ class SaleItemImageViewSet(viewsets.ModelViewSet):
         if sale_item_id:
             return SaleItemImage.objects.filter(sale_item_id=sale_item_id)
         return super().get_queryset()
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context

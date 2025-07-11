@@ -1,4 +1,6 @@
 from rest_framework import serializers
+
+from geology import settings
 from .models import ContactMessage, Employee, Category, Product, Order, SaleItem, SaleItemImage, \
     ProductImage
 
@@ -145,29 +147,31 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
 class SaleItemImageSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
     class Meta:
         model = SaleItemImage
-        fields = ['id', 'image', 'is_main', 'order', 'sale_item']
-        extra_kwargs = {
-            'sale_item': {'required': True}
-        }
+        fields = '__all__'
+
+    def get_image_url(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+        return None
 
 
 class SaleItemSerializer(serializers.ModelSerializer):
-    main_image = serializers.SerializerMethodField()
+    main_image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = SaleItem
-        fields = [
-            'id', 'title', 'slug', 'description',
-            'old_price', 'new_price', 'is_active',
-            'created_at', 'main_image'
-        ]
-        read_only_fields = ['slug', 'created_at']
+        fields = '__all__'
 
-    def get_main_image(self, obj):
-        main_image = obj.images.filter(is_main=True).first()
-        if main_image and main_image.image:
-            return main_image.image.url
+    def get_main_image_url(self, obj):
+        if obj.main_image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.main_image.url)
         return None
 
