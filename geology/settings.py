@@ -47,34 +47,6 @@ MIDDLEWARE = [
 
 INTERNAL_IPS = ALLOWED_HOSTS
 
-# Настройки CORS
-CORS_ALLOWED_ORIGINS = [
-    "https://geologiya-ru.ru",
-    "https://www.geologiya-ru.ru",
-    "http://localhost:3000",
-]
-CORS_ALLOW_CREDENTIALS = True
-CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
-CORS_ALLOW_METHODS = [
-    'GET',
-    'PATCH',
-    'POST',
-    'PUT',
-    'DELETE',
-    'OPTIONS',
-]
-CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'accept-language',
-    'authorization',
-    'content-type',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
-]
-
 ROOT_URLCONF = 'geology.urls'
 
 TEMPLATES_DIR = BASE_DIR / 'templates'
@@ -150,20 +122,64 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Настройки CSRF
-CSRF_COOKIE_DOMAIN = '.geologiya-ru.ru'
-CSRF_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SAMESITE = 'None'
-CSRF_COOKIE_HTTPONLY = False
-CSRF_TRUSTED_ORIGINS = [
-    "https://geologiya-ru.ru",
-    "https://www.geologiya-ru.ru",
+# Настройки безопасности для HTTPS
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True  # Перенаправлять все HTTP на HTTPS
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+CORS_ALLOW_METHODS = [
+    'GET',
+    'PATCH',
+    'POST',
+    'PUT',
+    'DELETE',
+    'OPTIONS',
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'accept-language',
+    'authorization',
+    'content-type',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]
 
-# Настройки сессии
+
+# Обновленные настройки CSRF
+CSRF_COOKIE_DOMAIN = '.geologiya-ru.ru'
+CSRF_COOKIE_SAMESITE = 'None'  # Для кросс-доменных запросов
+CSRF_COOKIE_HTTPONLY = False   # Чтобы JavaScript мог читать куки
+CSRF_USE_SESSIONS = False
+
+# Расширенные CORS настройки
+CORS_ALLOWED_ORIGINS = [
+    "https://geologiya-ru.ru",
+    "https://www.geologiya-ru.ru",
+    "http://localhost:3000",
+    "https://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+# Дополнительные настройки для работы с куки
 SESSION_COOKIE_DOMAIN = '.geologiya-ru.ru'
-SESSION_COOKIE_SECURE = not DEBUG
-SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SAMESITE = 'None'  # Для кросс-доменных запросов
+
+# Обновленные CSRF_TRUSTED_ORIGINS
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "https://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://geologiya-ru.ru",
+    "https://www.geologiya-ru.ru",
+    "https://api.geologiya-ru.ru",  # Добавлено API домен
+]
 
 
 # Email settings
