@@ -169,9 +169,11 @@ class SaleItemSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_main_image_url(self, obj):
-        if obj.main_image:
+        # Просто ищем главное изображение среди связанных изображений
+        main_image = obj.images.filter(is_main=True).first()
+
+        if main_image and main_image.image:
             request = self.context.get('request')
             if request:
-                return request.build_absolute_uri(obj.main_image.url)
+                return request.build_absolute_uri(main_image.image.url)
         return None
-
